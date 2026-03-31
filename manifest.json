@@ -1,0 +1,13 @@
+{
+  "name": "АиСД — Справочник алгоритмов",
+  "short_name": "АиСД",
+  "description": "Полный справочник алгоритмов и структур данных на C++",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1b26",
+  "theme_color": "#7c6af7",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
