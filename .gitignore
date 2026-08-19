@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+.output/
+.astro/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+
+# Cache
+.cache/
+.tmp/
+tmp/
+
+# Logs
+*.log
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
