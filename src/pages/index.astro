@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const reasoningSteps = [
+  ['01', 'Прямой подход', 'Сначала формулируем честное решение перебором.'],
+  ['02', 'Узкое место', 'Находим работу, которую алгоритм повторяет зря.'],
+  ['03', 'Наблюдение', 'Связываем ограничение задачи с подходящим паттерном.'],
+  ['04', 'Инвариант', 'Фиксируем условие, которое остаётся верным на каждом шаге.'],
+  ['05', 'Алгоритм', 'Только теперь пишем код и проверяем крайние случаи.'],
+] as const;
+---
+
+<BaseLayout>
+  <section class="hero shell" aria-labelledby="hero-title">
+    <div class="hero__copy">
+      <p class="eyebrow">Интерактивный курс по алгоритмам</p>
+      <h1 id="hero-title">Решения, которые вы умеете объяснить</h1>
+      <p class="hero__lead">
+        От первого перебора до уверенного выбора структуры данных — с одинаково ясными
+        примерами на C++ и Python.
+      </p>
+      <div class="hero__actions">
+        <a class="button button--primary" href="/course/">Начать курс</a>
+        <a class="text-link" href="/roadmap/">
+          Посмотреть карту знаний
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <dl class="hero__facts" aria-label="О курсе">
+        <div>
+          <dt>21</dt>
+          <dd>этап от основ до интервью</dd>
+        </div>
+        <div>
+          <dt>C++ / Python</dt>
+          <dd>равноправные реализации</dd>
+        </div>
+      </dl>
+    </div>
+
+    <aside class="reasoning-rail" aria-labelledby="reasoning-title">
+      <p class="reasoning-rail__label">Как строится решение</p>
+      <h2 id="reasoning-title">Не шаблон, а цепочка рассуждений</h2>
+      <ol>
+        {reasoningSteps.map(([number, title, description]) => (
+          <li>
+            <span class="reasoning-rail__number" aria-hidden="true">{number}</span>
+            <div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  </section>
+
+  <section class="course-principles shell" aria-labelledby="principles-title">
+    <div class="section-heading">
+      <p class="eyebrow">Система обучения</p>
+      <h2 id="principles-title">Один маршрут вместо россыпи карточек</h2>
+    </div>
+    <div class="principles-grid">
+      <article>
+        <p class="principles-grid__index">A</p>
+        <h3>Паттерны, а не заучивание</h3>
+        <p>Учимся узнавать форму задачи и понимать, когда техника не подходит.</p>
+      </article>
+      <article>
+        <p class="principles-grid__index">B</p>
+        <h3>Проверяемая сложность</h3>
+        <p>Разбираем цену каждого шага по времени и памяти, а не запоминаем итог.</p>
+      </article>
+      <article>
+        <p class="principles-grid__index">C</p>
+        <h3>Практика по готовности</h3>
+        <p>Задачи открываются в логичном порядке — от подсказок к самостоятельному решению.</p>
+      </article>
+    </div>
+  </section>
+</BaseLayout>
