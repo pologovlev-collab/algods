@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+
+import { referenceTopics } from '../data/reference-topics';
+import { stages } from '../data/stages';
+import { sortLessons } from '../lib/content';
+
+const lessons = sortLessons(await getCollection('lessons'));
+const entries = [
+  { href: '/course/', title: 'Курс', context: 'Все 54 урока и 21 этап' },
+  { href: '/roadmap/', title: 'Карта знаний', context: 'Зависимости и готовность уроков' },
+  { href: '/practice/', title: 'Практика', context: 'LeetCode 75 и русскоязычные задачи CodeRun' },
+  { href: '/leetcode-75/', title: 'LeetCode 75', context: 'Официальный список и локальные статусы' },
+  { href: '/reference/', title: 'Справочник', context: 'Продвинутые темы после основного маршрута' },
+  ...stages.map((stage) => ({
+    href: `/course/#stage-${stage.id}`,
+    title: stage.title,
+    context: `Этап ${stage.id} · ${stage.description}`,
+  })),
+  ...lessons.map(({ data }) => ({
+    href: `/course/${data.slug}/`,
+    title: data.title,
+    context: `Этап ${data.stage} · ${data.summary} · ${data.patterns.join(' ')}`,
+  })),
+  ...referenceTopics.map((topic) => ({
+    href: `/reference/#${topic.slug}`,
+    title: topic.title,
+    context: `Справочник · ${topic.scope} · ${topic.useWhen}`,
+  })),
+];
+---
+
+<details class="global-search" data-global-search>
+  <summary>Поиск</summary>
+  <div class="global-search__panel">
+    <label for="global-search-input">Найти тему, урок или раздел</label>
+    <input
+      id="global-search-input"
+      type="search"
+      placeholder="Например, инвариант бинарного поиска"
+      autocomplete="off"
+      aria-controls="global-search-results"
+      data-global-search-input
+    />
+    <p class="global-search__status" aria-live="polite" data-global-search-status>
+      Введите название темы или свойство задачи.
+    </p>
+    <ul id="global-search-results" data-global-search-results>
+      {entries.map((entry, index) => (
+        <li
+          data-global-search-entry
+          data-search-index={index}
+          data-search-title={entry.title}
+          data-search-context={entry.context}
+          hidden
+        >
+          <a href={entry.href}>
+            <strong>{entry.title}</strong>
+            <span>{entry.context}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</details>
+
+<script>
+  import { filterSearchEntries, type SearchEntry } from '../lib/search';
+
+  document.querySelectorAll<HTMLDetailsElement>('[data-global-search]').forEach((search) => {
+    const input = search.querySelector<HTMLInputElement>('[data-global-search-input]');
+    const status = search.querySelector<HTMLElement>('[data-global-search-status]');
+    const elements = [...search.querySelectorAll<HTMLElement>('[data-global-search-entry]')];
+    const indexed = elements.map((element) => ({
+      href: element.querySelector<HTMLAnchorElement>('a')?.getAttribute('href') ?? '',
+      title: element.dataset.searchTitle ?? '',
+      context: element.dataset.searchContext ?? '',
+      index: Number(element.dataset.searchIndex),
+    }));
+
+    const render = () => {
+      const query = input?.value ?? '';
+      const matches = filterSearchEntries(indexed, query, 8) as Array<SearchEntry & { index: number }>;
+      const visible = new Set(matches.map(({ index }) => index));
+      elements.forEach((element, index) => {
+        element.hidden = !visible.has(index);
+      });
+      if (!status) return;
+      status.textContent = query.trim().length === 0
+        ? 'Введите название темы или свойство задачи.'
+        : matches.length === 0
+          ? 'Ничего не найдено. Попробуйте назвать паттерн иначе.'
+          : `Найдено: ${matches.length}`;
+    };
+
+    search.addEventListener('toggle', () => {
+      if (!search.open) return;
+      document.querySelectorAll<HTMLDetailsElement>('.mobile-menu[open]').forEach((menu) => {
+        menu.open = false;
+      });
+      window.requestAnimationFrame(() => input?.focus());
+    });
+    input?.addEventListener('input', render);
+    search.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      search.open = false;
+      search.querySelector<HTMLElement>('summary')?.focus();
+    });
+    render();
+  });
+</script>

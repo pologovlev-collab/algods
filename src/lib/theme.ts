@@ -17,3 +17,12 @@ export function getInitialTheme(storedTheme: unknown, prefersDark: boolean): The
 export function getNextTheme(theme: Theme): Theme {
   return theme === 'light' ? 'dark' : 'light';
 }
+
+export function getThemeToggleCopy(theme: Theme): {
+  actionLabel: string;
+  visibleLabel: string;
+} {
+  return theme === 'light'
+    ? { actionLabel: 'Включить тёмную тему', visibleLabel: 'Тёмная тема' }
+    : { actionLabel: 'Включить светлую тему', visibleLabel: 'Светлая тема' };
+}

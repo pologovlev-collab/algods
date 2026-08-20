@@ -15,7 +15,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run check && npm run lint && npm run test && npm run build"
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:examples": "node scripts/validate-content.mjs --check-code",
+    "validate:links": "node scripts/validate-links.mjs",
+    "verify": "npm run check && npm run lint && npm run test && npm run validate:content && npm run validate:examples && npm run build && npm run validate:links"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.3",

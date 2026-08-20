@@ -5,6 +5,7 @@ import {
   leetcode75Groups,
   leetcode75Problems,
 } from '../src/data/leetcode75';
+import { LEETCODE_75_PROGRESS_IDS } from '../src/data/progress-ids';
 
 const expectedLessonIds = new Set([
   's00-l01',
@@ -91,6 +92,7 @@ const expectedGroups = [
 describe('LeetCode 75 provenance', () => {
   it('records the live verification date and official source URLs', () => {
     expect(LEETCODE_75_PROVENANCE).toEqual({
+      provider: 'LeetCode',
       verifiedAt: '2026-08-20',
       sourceUrls: [
         'https://leetcode.com/studyplan/leetcode-75/',
@@ -105,6 +107,9 @@ describe('LeetCode 75 official dataset', () => {
     expect(leetcode75Problems).toHaveLength(75);
     expect(new Set(leetcode75Problems.map(({ id }) => id)).size).toBe(75);
     expect(new Set(leetcode75Problems.map(({ slug }) => slug)).size).toBe(75);
+    expect(leetcode75Problems.map(({ id }) => `leetcode:${id}`)).toEqual(
+      LEETCODE_75_PROGRESS_IDS,
+    );
   });
 
   it('derives every canonical URL from the official slug', () => {
@@ -172,6 +177,8 @@ describe('LeetCode 75 official dataset', () => {
 
   it('provides an original concise Russian learning note without company metadata', () => {
     for (const problem of leetcode75Problems) {
+      expect(problem.provider).toBe('LeetCode');
+      expect(problem.verifiedAt).toBe('2026-08-20');
       expect(problem.learningNoteRu).toMatch(/[А-Яа-яЁё]/);
       expect(problem.learningNoteRu.length).toBeGreaterThanOrEqual(20);
       expect(problem.learningNoteRu.length).toBeLessThanOrEqual(180);

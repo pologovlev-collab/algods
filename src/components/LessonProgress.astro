@@ -1,0 +1,25 @@
+---
+interface Props {
+  lessonId: string;
+  prerequisites?: string[];
+  compact?: boolean;
+}
+
+const { lessonId, prerequisites = [], compact = false } = Astro.props;
+---
+
+<div
+  class:list={['lesson-progress', { 'lesson-progress--compact': compact }]}
+  data-lesson-id={lessonId}
+  data-prerequisites={prerequisites.join(',')}
+>
+  <p class="lesson-progress__label" data-lesson-state-label>Не начат</p>
+  <div class="lesson-progress__actions" aria-label="Статус урока">
+    <button type="button" data-lesson-status-value="in-progress" aria-pressed="false">
+      В процессе
+    </button>
+    <button type="button" data-lesson-status-value="completed" aria-pressed="false">
+      Завершён
+    </button>
+  </div>
+</div>

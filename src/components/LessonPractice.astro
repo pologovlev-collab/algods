@@ -1,0 +1,45 @@
+---
+import type { LeetCode75Problem } from '../data/leetcode75';
+import ProblemStatus from './ProblemStatus.astro';
+
+interface Props {
+  problems: LeetCode75Problem[];
+}
+
+const { problems } = Astro.props;
+const difficultyLabels = { Easy: 'Легко', Medium: 'Средне', Hard: 'Сложно' } as const;
+const modeLabels = {
+  guided: 'с разбором',
+  transfer: 'перенос паттерна',
+  independent: 'самостоятельно',
+} as const;
+---
+
+{problems.length > 0 && (
+  <section class="lesson-practice" aria-labelledby="lesson-practice-title">
+    <header>
+      <p class="eyebrow">Закрепление</p>
+      <h2 id="lesson-practice-title">Задачи, к которым вы теперь готовы</h2>
+      <p>Статус сохранится в общей практике и на странице LeetCode 75.</p>
+    </header>
+    <ol>
+      {problems.map((problem) => (
+        <li data-problem-prerequisites={problem.prerequisiteLessonIds.join(',')} data-problem-readiness="blocked">
+          <div>
+            <p class="lesson-practice__meta">
+              <span>#{problem.id}</span>
+              <span>{problem.provider}</span>
+              <span>{difficultyLabels[problem.difficulty]}</span>
+              <span>{modeLabels[problem.practiceMode]}</span>
+            </p>
+            <h3><a href={problem.url} target="_blank" rel="noopener noreferrer">{problem.title}</a></h3>
+            <p>{problem.learningNoteRu}</p>
+            <small data-problem-readiness-label>Сначала завершите уроки-зависимости</small>
+          </div>
+          <ProblemStatus problemId={`leetcode:${problem.id}`} title={problem.title} />
+        </li>
+      ))}
+    </ol>
+    <a class="text-link" href="/leetcode-75/">Открыть весь проверенный набор LeetCode 75 <span aria-hidden="true">→</span></a>
+  </section>
+)}

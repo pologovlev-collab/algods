@@ -4,6 +4,8 @@ import {
   CURRENT_PROGRESS_VERSION,
   createDefaultProgress,
   exportProgress,
+  getActivityDateKeys,
+  getLocalDateKey,
   importProgress,
   migrateProgress,
   recordReviewActivity,
@@ -71,6 +73,18 @@ describe('progress schema', () => {
 });
 
 describe('progress transitions', () => {
+  it('builds the activity window from the learner local calendar date', () => {
+    const localReference = new Date(2026, 2, 1, 0, 30);
+
+    expect(getLocalDateKey(localReference)).toBe('2026-03-01');
+    expect(getActivityDateKeys(localReference, 4)).toEqual([
+      '2026-02-26',
+      '2026-02-27',
+      '2026-02-28',
+      '2026-03-01',
+    ]);
+  });
+
   it('records a lesson completion once and does not inflate activity on repeat', () => {
     const first = recordLessonStatus(
       createDefaultProgress(),
@@ -174,6 +188,27 @@ describe('progress portability', () => {
     });
   });
 
+  it('persists supplementary practice without inflating the LeetCode 75 gauge', () => {
+    const supplementary = recordProblemStatus(
+      createDefaultProgress(),
+      'coderun:20',
+      'solved-independent',
+      now,
+    );
+
+    expect(importProgress(exportProgress(supplementary), now)).toEqual({
+      ok: true,
+      value: supplementary,
+    });
+    expect(summarizeProgress(supplementary, 54, 75)).toMatchObject({
+      solvedProblems: 0,
+      independentProblems: 0,
+      assistedProblems: 0,
+      revisitProblems: 0,
+      totalProblems: 75,
+    });
+  });
+
   it('rejects malformed or unsupported imports instead of partially accepting them', () => {
     expect(importProgress('{broken', now)).toEqual({
       ok: false,
@@ -201,5 +236,19 @@ describe('progress portability', () => {
       ok: false,
       error: 'Файл прогресса повреждён или имеет неверный формат.',
     });
+  });
+
+  it('rejects unknown entity IDs instead of inflating progress totals', () => {
+    const unknownLesson = {
+      ...createDefaultProgress(),
+      lessons: { 's99-l99': { status: 'completed', updatedAt: now } },
+    };
+    const unknownProblem = {
+      ...createDefaultProgress(),
+      problems: { 'leetcode:999999': { status: 'solved-independent', updatedAt: now } },
+    };
+
+    expect(importProgress(JSON.stringify(unknownLesson), now).ok).toBe(false);
+    expect(importProgress(JSON.stringify(unknownProblem), now).ok).toBe(false);
   });
 });

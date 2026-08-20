@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { stages } from '../../data/stages';
+import { orderCourseLessons } from '../../lib/course';
+
+const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data));
+const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
+---
+
+<BaseLayout title="Карта знаний — AlgoDS" description="Зависимости между темами курса и состояние каждого урока.">
+  <header class="page-intro shell">
+    <p class="eyebrow">Зависимости вместо случайного порядка</p>
+    <h1>Карта знаний</h1>
+    <p>
+      Линейный маршрут удобен для учёбы, а эта карта объясняет настоящие связи: почему
+      бинарный поиск опирается на сортировку, а Дейкстра — на BFS и кучу.
+    </p>
+  </header>
+
+  <div class="knowledge-map shell">
+    <ol class="knowledge-map__stages">
+      {stages.map((stage) => (
+        <li id={`stage-${stage.id}`}>
+          <section aria-labelledby={`map-stage-${stage.id}`}>
+            <header>
+              <span>{String(stage.id).padStart(2, '0')}</span>
+              <div><h2 id={`map-stage-${stage.id}`}>{stage.title}</h2><p>{stage.description}</p></div>
+            </header>
+            <ol>
+              {lessons.filter(({ stage: lessonStage }) => lessonStage === stage.id).map((lesson) => (
+                <li
+                  data-lesson-id={lesson.id}
+                  data-prerequisites={lesson.prerequisites.join(',')}
+                  data-progress-state="blocked"
+                >
+                  <a href={`/course/${lesson.slug}/`}>
+                    <strong>{lesson.title}</strong>
+                    <span data-lesson-state-label>Не начат</span>
+                  </a>
+                  {lesson.prerequisites.length > 0 && (
+                    <div class="map-prerequisites">
+                      <p>Опирается на:</p>
+                      <ul>
+                        {lesson.prerequisites.map((id) => {
+                          const prerequisite = lessonById.get(id);
+                          return prerequisite && (
+                            <li data-prerequisite-id={id}>
+                              <a href={`/course/${prerequisite.slug}/`}>{prerequisite.title}</a>
+                              <span data-prerequisite-label>нужно пройти</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </section>
+        </li>
+      ))}
+    </ol>
+  </div>
+</BaseLayout>

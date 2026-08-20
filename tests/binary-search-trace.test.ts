@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createLowerBoundTrace } from '../src/lib/binary-search-trace';
+import { createLowerBoundTrace, getLowerBoundTraceFrame } from '../src/lib/binary-search-trace';
 
 describe('lower-bound teaching trace', () => {
   it('shows how duplicates keep the left half in play', () => {
@@ -46,5 +46,32 @@ describe('lower-bound teaching trace', () => {
     expect(() => createLowerBoundTrace([2, 1, 3], 2)).toThrow(
       'Binary search requires values sorted in nondecreasing order.',
     );
+  });
+
+  it('keeps the first decision highlight aligned with its pre-decision bounds', () => {
+    const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
+
+    expect(getLowerBoundTraceFrame(trace, 0)).toEqual({
+      kind: 'decision',
+      lo: 0,
+      hi: 8,
+      mid: 4,
+      midValue: 8,
+      decision: 'move-left',
+      nextLo: 0,
+      nextHi: 4,
+      cellStates: ['candidate', 'candidate', 'candidate', 'candidate', 'mid', 'candidate', 'candidate', 'candidate'],
+    });
+  });
+
+  it('highlights only the computed boundary in the final frame', () => {
+    const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
+
+    expect(getLowerBoundTraceFrame(trace, trace.steps.length)).toEqual({
+      kind: 'result',
+      resultIndex: 4,
+      found: true,
+      cellStates: ['discarded', 'discarded', 'discarded', 'discarded', 'result', 'discarded', 'discarded', 'discarded'],
+    });
   });
 });

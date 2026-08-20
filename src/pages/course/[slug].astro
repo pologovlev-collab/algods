@@ -1,0 +1,100 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BinarySearchLab from '../../components/BinarySearchLab.astro';
+import LanguageSwitch from '../../components/LanguageSwitch.astro';
+import LessonPractice from '../../components/LessonPractice.astro';
+import LessonProgress from '../../components/LessonProgress.astro';
+import { leetcode75Problems } from '../../data/leetcode75';
+import { stages } from '../../data/stages';
+import { getLessonNavigation, getPracticeAnchorLessonId, orderCourseLessons } from '../../lib/course';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('lessons');
+  return entries.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'lessons'>;
+}
+
+const { entry } = Astro.props;
+const orderedLessons = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data));
+const { previous, next } = getLessonNavigation(orderedLessons, entry.data.id);
+const lessonById = new Map(orderedLessons.map((lesson) => [lesson.id, lesson]));
+const stage = stages.find(({ id }) => id === entry.data.stage);
+const mappedProblems = leetcode75Problems.filter(
+  (problem) => getPracticeAnchorLessonId(problem.prerequisiteLessonIds, orderedLessons) === entry.data.id,
+);
+const { Content } = await render(entry);
+const title = `${entry.data.title} — AlgoDS`;
+---
+
+<BaseLayout title={title} description={entry.data.summary}>
+  <div class="lesson-shell shell">
+    <article class="lesson-article">
+      <header class="lesson-title">
+        <a class="back-link lesson-title__back" href={`/course/#stage-${entry.data.stage}`}>К этапу {entry.data.stage}</a>
+        <p class="eyebrow">Этап {entry.data.stage} · урок {entry.data.order}</p>
+        <h1>{entry.data.title}</h1>
+        <p>{entry.data.summary}</p>
+      </header>
+      <div class="lesson-tools">
+        <LanguageSwitch />
+        <button class="text-button" type="button" data-bookmark-id={`lesson:${entry.data.id}`} aria-pressed="false">
+          Добавить в закладки
+        </button>
+      </div>
+      <div class="lesson-outcomes">
+        <p>После урока вы сможете</p>
+        <ul>{entry.data.outcomes.map((outcome) => <li>{outcome}</li>)}</ul>
+      </div>
+      <div class="lesson-body">
+        <Content />
+      </div>
+
+      {(entry.data.slug === 'binary-search-invariant' || entry.data.slug === 'binary-search-boundaries') && (
+        <BinarySearchLab />
+      )}
+
+      <LessonProgress lessonId={entry.data.id} prerequisites={entry.data.prerequisites} />
+      <LessonPractice problems={mappedProblems} />
+
+      <nav class="lesson-navigation" aria-label="Навигация по урокам">
+        {previous ? (
+          <a href={`/course/${previous.slug}/`} rel="prev">
+            <small>Предыдущий урок</small><strong>{previous.title}</strong>
+          </a>
+        ) : <span></span>}
+        {next ? (
+          <a href={`/course/${next.slug}/`} rel="next">
+            <small>Следующий урок</small><strong>{next.title}</strong>
+          </a>
+        ) : (
+          <a href="/practice/"><small>Маршрут завершён</small><strong>Перейти к практике</strong></a>
+        )}
+      </nav>
+    </article>
+
+    <aside class="lesson-sidebar" aria-label="О текущем уроке">
+      <a class="back-link lesson-sidebar__back" href={`/course/#stage-${entry.data.stage}`}>К этапу {entry.data.stage}</a>
+      <p class="lesson-sidebar__stage">{stage?.title}</p>
+      <dl>
+        <div><dt>Урок</dt><dd>{entry.data.id}</dd></div>
+        <div><dt>Практика</dt><dd>{entry.data.practice.miniChecks} проверки · {entry.data.practice.guidedExercises} разбор</dd></div>
+      </dl>
+      {entry.data.prerequisites.length > 0 && (
+        <div class="lesson-prerequisites">
+          <h2>Перед этим</h2>
+          <ul>
+            {entry.data.prerequisites.map((id) => {
+              const prerequisite = lessonById.get(id);
+              return prerequisite && <li><a href={`/course/${prerequisite.slug}/`}>{prerequisite.title}</a></li>;
+            })}
+          </ul>
+        </div>
+      )}
+    </aside>
+  </div>
+</BaseLayout>

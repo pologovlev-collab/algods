@@ -14,6 +14,7 @@
   import {
     getInitialTheme,
     getNextTheme,
+    getThemeToggleCopy,
     isTheme,
     THEME_STORAGE_KEY,
     type Theme,
@@ -30,11 +31,7 @@
   };
 
   const renderButtons = (theme: Theme) => {
-    const switchesToDark = theme === 'light';
-    const actionLabel = switchesToDark
-      ? 'Включить тёмную тему'
-      : 'Включить светлую тему';
-    const visibleLabel = switchesToDark ? 'Тёмная тема' : 'Светлая тема';
+    const { actionLabel, visibleLabel } = getThemeToggleCopy(theme);
 
     buttons.forEach((button) => {
       button.setAttribute('aria-label', actionLabel);
@@ -54,7 +51,13 @@
       } catch {
         // The visual preference still applies for this page when storage is unavailable.
       }
+      window.dispatchEvent(new CustomEvent('algods:theme-change', { detail: nextTheme }));
       renderButtons(nextTheme);
     });
+  });
+
+  window.addEventListener('algods:resolved-theme', (event) => {
+    if (!(event instanceof CustomEvent) || !isTheme(event.detail)) return;
+    renderButtons(event.detail);
   });
 </script>

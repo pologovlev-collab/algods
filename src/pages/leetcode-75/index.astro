@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PracticeExplorer from '../../components/PracticeExplorer.astro';
+import { leetcode75Groups } from '../../data/leetcode75';
+---
+
+<BaseLayout title="LeetCode 75 — AlgoDS" description="Текущий официальный LeetCode 75, сопоставленный этапам курса AlgoDS.">
+  <header class="page-intro page-intro--with-gauge shell">
+    <div>
+      <p class="eyebrow">Проверенный набор</p>
+      <h1>LeetCode 75</h1>
+      <p>
+        Текущий официальный порядок, трудность и ссылки — плюс рекомендуемый этап курса и
+        короткая учебная цель для каждой задачи.
+      </p>
+    </div>
+    <div
+      class="progress-gauge"
+      data-progress-gauge
+      data-progress-total="75"
+      data-progress-kind="problems"
+      role="progressbar"
+      aria-label="Решено задач LeetCode 75"
+      aria-valuemin="0"
+      aria-valuemax="75"
+      aria-valuenow="0"
+    >
+      <div><strong data-gauge-value>0/75</strong><span>решено</span></div>
+    </div>
+  </header>
+
+  <div class="shell section-block">
+    <PracticeExplorer groups={leetcode75Groups} grouped showVerification />
+  </div>
+</BaseLayout>

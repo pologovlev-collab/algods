@@ -1,0 +1,75 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProgressOverview from '../../components/ProgressOverview.astro';
+import { stages } from '../../data/stages';
+import { orderCourseLessons } from '../../lib/course';
+
+const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data));
+---
+
+<BaseLayout
+  title="Курс — AlgoDS"
+  description="Последовательный курс из 21 этапа: от оценки ограничений до смешанной практики и технического собеседования."
+>
+  <header class="page-intro shell">
+    <p class="eyebrow">Основной маршрут</p>
+    <h1>От первого перебора до выбора паттерна</h1>
+    <p>
+      54 коротких урока образуют одну цепочку. Зависимости показывают, что нужно понимать,
+      а не запрещают заглянуть вперёд.
+    </p>
+    <a class="button button--primary" href={`/course/${lessons[0]?.slug}/`} data-continue-course>
+      Начать первый урок
+    </a>
+  </header>
+
+  <div class="course-layout shell">
+    <nav class="course-stage-nav" aria-label="Этапы курса">
+      <p>Этапы</p>
+      <ol>
+        {stages.map((stage) => <li><a href={`#stage-${stage.id}`}>{stage.id}. {stage.title}</a></li>)}
+      </ol>
+    </nav>
+
+    <div class="course-stages">
+      {stages.map((stage) => {
+        const stageLessons = lessons.filter((lesson) => lesson.stage === stage.id);
+        return (
+          <section class="course-stage" id={`stage-${stage.id}`} aria-labelledby={`stage-title-${stage.id}`}>
+            <header>
+              <p class="course-stage__number">Этап {stage.id}</p>
+              <h2 id={`stage-title-${stage.id}`}>{stage.title}</h2>
+              <p>{stage.description}</p>
+            </header>
+            <ol class="lesson-list">
+              {stageLessons.map((lesson) => (
+                <li
+                  data-course-lesson
+                  data-lesson-id={lesson.id}
+                  data-lesson-href={`/course/${lesson.slug}/`}
+                  data-prerequisites={lesson.prerequisites.join(',')}
+                  data-progress-state="blocked"
+                >
+                  <a href={`/course/${lesson.slug}/`}>
+                    <span class="lesson-list__order">{String(lesson.order).padStart(2, '0')}</span>
+                    <span>
+                      <strong>{lesson.title}</strong>
+                      <small>{lesson.summary}</small>
+                    </span>
+                    <span class="lesson-list__state" data-lesson-state-label>Не начат</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+
+  <div class="shell section-block">
+    <ProgressOverview />
+  </div>
+</BaseLayout>

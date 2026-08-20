@@ -1,3 +1,9 @@
+import {
+  CORE_LESSON_ID_SET,
+  KNOWN_PROBLEM_ID_SET,
+  LEETCODE_75_PROGRESS_ID_SET,
+} from '../data/progress-ids';
+
 export const CURRENT_PROGRESS_VERSION = 2 as const;
 
 export type CodeLanguage = 'cpp' | 'python';
@@ -66,6 +72,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string' && item.length > 0);
 
+const isLessonId = (value: string): boolean => CORE_LESSON_ID_SET.has(value);
+const isProblemId = (value: string): boolean => KNOWN_PROBLEM_ID_SET.has(value);
+const isBookmarkId = (value: string): boolean =>
+  value.startsWith('lesson:') && isLessonId(value.slice('lesson:'.length));
+
 const isCodeLanguage = (value: unknown): value is CodeLanguage =>
   value === 'cpp' || value === 'python';
 
@@ -85,7 +96,30 @@ const isTimestamp = (value: unknown): value is string =>
 
 const unique = (values: string[]): string[] => [...new Set(values)];
 
-const dateKey = (timestamp: string): string => timestamp.slice(0, 10);
+const padDatePart = (value: number): string => String(value).padStart(2, '0');
+
+export function getLocalDateKey(referenceDate = new Date()): string {
+  return [
+    referenceDate.getFullYear(),
+    padDatePart(referenceDate.getMonth() + 1),
+    padDatePart(referenceDate.getDate()),
+  ].join('-');
+}
+
+export function getActivityDateKeys(referenceDate = new Date(), days = 84): string[] {
+  if (!Number.isInteger(days) || days < 1) return [];
+
+  return Array.from({ length: days }, (_, index) => {
+    const offset = days - index - 1;
+    const date = new Date(
+      referenceDate.getFullYear(),
+      referenceDate.getMonth(),
+      referenceDate.getDate(),
+    );
+    date.setDate(date.getDate() - offset);
+    return getLocalDateKey(date);
+  });
+}
 
 const isCalendarDate = (value: string): boolean => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -99,8 +133,9 @@ const nextActivity = (
   field: keyof ActivityDay,
   entityId: string,
   uniqueAcrossHistory = true,
+  activityDate = getLocalDateKey(new Date(timestamp)),
 ): ProgressState['activity'] => {
-  const key = dateKey(timestamp);
+  const key = activityDate;
   const current = activity[key] ?? EMPTY_ACTIVITY;
 
   if (
@@ -122,12 +157,13 @@ const nextActivity = (
 const readTimedStatuses = <TStatus extends string>(
   value: unknown,
   isStatus: (candidate: unknown) => candidate is TStatus,
+  isId: (candidate: string) => boolean,
 ): Record<string, TimedStatus<TStatus>> | null => {
   if (!isRecord(value)) return null;
 
   const result: Record<string, TimedStatus<TStatus>> = {};
   for (const [id, candidate] of Object.entries(value)) {
-    if (!id || !isRecord(candidate) || !isStatus(candidate.status) || !isTimestamp(candidate.updatedAt)) {
+    if (!isId(id) || !isRecord(candidate) || !isStatus(candidate.status) || !isTimestamp(candidate.updatedAt)) {
       return null;
     }
     result[id] = { status: candidate.status, updatedAt: candidate.updatedAt };
@@ -146,6 +182,9 @@ const readActivity = (value: unknown): ProgressState['activity'] | null => {
       !isStringArray(candidate.lessonCompletions) ||
       !isStringArray(candidate.problemSolves) ||
       !isStringArray(candidate.reviews) ||
+      !candidate.lessonCompletions.every(isLessonId) ||
+      !candidate.problemSolves.every(isProblemId) ||
+      !candidate.reviews.every(isProblemId) ||
       unique(candidate.lessonCompletions).length !== candidate.lessonCompletions.length ||
       unique(candidate.problemSolves).length !== candidate.problemSolves.length ||
       unique(candidate.reviews).length !== candidate.reviews.length
@@ -165,15 +204,17 @@ const parseV2 = (value: unknown): ProgressState | null => {
   if (!isRecord(value) || value.version !== CURRENT_PROGRESS_VERSION) return null;
   if (!isCodeLanguage(value.language) || !isTheme(value.theme)) return null;
 
-  const lessons = readTimedStatuses(value.lessons, isLessonStatus);
-  const problems = readTimedStatuses(value.problems, isSavedProblemStatus);
+  const lessons = readTimedStatuses(value.lessons, isLessonStatus, isLessonId);
+  const problems = readTimedStatuses(value.problems, isSavedProblemStatus, isProblemId);
   const activity = readActivity(value.activity);
   if (
     lessons === null ||
     problems === null ||
     activity === null ||
     !isStringArray(value.bookmarks) ||
-    !isStringArray(value.revisit)
+    !value.bookmarks.every(isBookmarkId) ||
+    !isStringArray(value.revisit) ||
+    !value.revisit.every(isProblemId)
   ) {
     return null;
   }
@@ -201,10 +242,18 @@ const isProgressV1 = (value: unknown): value is ProgressV1 => {
   if (value.language !== undefined && !isCodeLanguage(value.language)) return false;
   if (value.theme !== undefined && !isTheme(value.theme)) return false;
   if (value.completedLessonIds !== undefined && !isStringArray(value.completedLessonIds)) return false;
-  if (value.bookmarks !== undefined && !isStringArray(value.bookmarks)) return false;
+  if (
+    value.completedLessonIds !== undefined &&
+    !value.completedLessonIds.every(isLessonId)
+  ) return false;
+  if (
+    value.bookmarks !== undefined &&
+    (!isStringArray(value.bookmarks) || !value.bookmarks.every(isBookmarkId))
+  ) return false;
   if (value.problemStatuses !== undefined) {
     if (!isRecord(value.problemStatuses)) return false;
     if (
+      Object.keys(value.problemStatuses).some((id) => !isProblemId(id)) ||
       Object.values(value.problemStatuses).some(
         (status) => status !== 'not-started' && !isSavedProblemStatus(status),
       )
@@ -264,11 +313,12 @@ export function recordLessonStatus(
   lessonId: string,
   status: LessonStatus,
   timestamp = new Date().toISOString(),
+  activityDate = getLocalDateKey(new Date(timestamp)),
 ): ProgressState {
   const previous = state.lessons[lessonId]?.status;
   const activity =
     status === 'completed' && previous !== 'completed'
-      ? nextActivity(state.activity, timestamp, 'lessonCompletions', lessonId)
+      ? nextActivity(state.activity, timestamp, 'lessonCompletions', lessonId, true, activityDate)
       : state.activity;
 
   return {
@@ -286,6 +336,7 @@ export function recordProblemStatus(
   problemId: string,
   status: ProblemStatus,
   timestamp = new Date().toISOString(),
+  activityDate = getLocalDateKey(new Date(timestamp)),
 ): ProgressState {
   const previous = state.problems[problemId]?.status ?? 'not-started';
   const problems = { ...state.problems };
@@ -299,7 +350,7 @@ export function recordProblemStatus(
   const isSolved = status === 'solved-independent' || status === 'solved-with-help';
   const wasSolved = previous === 'solved-independent' || previous === 'solved-with-help';
   if (isSolved && !wasSolved) {
-    activity = nextActivity(activity, timestamp, 'problemSolves', problemId);
+    activity = nextActivity(activity, timestamp, 'problemSolves', problemId, true, activityDate);
   }
 
   return {
@@ -317,10 +368,11 @@ export function recordReviewActivity(
   state: ProgressState,
   problemId: string,
   timestamp = new Date().toISOString(),
+  activityDate = getLocalDateKey(new Date(timestamp)),
 ): ProgressState {
   return {
     ...state,
-    activity: nextActivity(state.activity, timestamp, 'reviews', problemId, false),
+    activity: nextActivity(state.activity, timestamp, 'reviews', problemId, false, activityDate),
   };
 }
 
@@ -367,7 +419,9 @@ export function summarizeProgress(
   totalProblems: number,
 ): ProgressSummary {
   const lessonEntries = Object.values(state.lessons);
-  const problemEntries = Object.values(state.problems);
+  const problemEntries = Object.entries(state.problems)
+    .filter(([id]) => LEETCODE_75_PROGRESS_ID_SET.has(id))
+    .map(([, entry]) => entry);
   const independentProblems = problemEntries.filter(
     (entry) => entry.status === 'solved-independent',
   ).length;

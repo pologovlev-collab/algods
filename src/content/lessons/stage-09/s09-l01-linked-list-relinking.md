@@ -1,0 +1,191 @@
+---
+{
+  "id": "s09-l01",
+  "slug": "linked-list-relinking",
+  "title": "Узлы, dummy и безопасное перенаправление ссылок",
+  "stage": 9,
+  "order": 1,
+  "prerequisites": [
+    "s03-l02"
+  ],
+  "core": true,
+  "patterns": [
+    "linked-list"
+  ],
+  "summary": "Dummy-узел убирает особый случай первой вставки, а хвост результата всегда указывает на последний уже слитый узел.",
+  "outcomes": [
+    "объяснять роль dummy/sentinel узла",
+    "сливать два отсортированных списка перенаправлением существующих ссылок"
+  ],
+  "practice": {
+    "miniChecks": 2,
+    "guidedExercises": 1,
+    "independentExercises": 1
+  }
+}
+---
+# Узлы, dummy и безопасное перенаправление ссылок
+
+Трассировка `1→4` и `2→3`: dummy начинает результат, tail последовательно принимает 1, 2, 3, 4; настоящая голова ответа находится в `dummy.next`.
+
+<!-- algods:problem-shape -->
+## Как слить два отсортированных связных списка?
+
+Слить два отсортированных односвязных списка, переиспользуя исходные узлы и не выделяя узлы результата. Контракт требует, чтобы оба списка были ациклическими и не разделяли ни одного узла: общий хвост при перенаправлении ссылок может превратиться в цикл.
+
+<!-- algods:brute-force -->
+## Копирование значений и построение нового списка
+
+Скопировать оба списка в массив, отсортировать значения и построить третий список.
+
+<!-- algods:bottleneck -->
+## Что теряется при пересоздании всех узлов?
+
+Копирование тратит O(n+m) дополнительной памяти, теряет идентичность узлов и делает лишнюю сортировку O((n+m) log(n+m)).
+
+<!-- algods:key-observation -->
+## Меньшая из двух голов — следующий узел результата
+
+Головы обоих списков — минимальные оставшиеся элементы. Dummy-узел даёт стабильную точку перед головой ответа, поэтому первая вставка не требует отдельной ветви.
+
+<!-- algods:invariant-state -->
+## Что гарантируют dummy и tail?
+
+`dummy.next` начинает отсортированный результат, `tail` указывает на его последний узел, а `first` и `second` начинают два ещё не слитых суффикса.
+
+<!-- algods:algorithm -->
+## Перенаправляем next и один раз присоединяем остаток
+
+Пока оба списка непусты, присоединять к `tail.next` меньшую голову, продвигать выбранный список и затем tail. После цикла одним присваиванием присоединить оставшийся суффикс. Вернуть `dummy.next`.
+
+<!-- algods:implementation -->
+## Слияние списков на C++17 и Python 3
+
+### C++17
+
+```cpp
+#include <cassert>
+#include <vector>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+};
+
+Node* mergeSorted(Node* first, Node* second) {
+    // Preconditions: both lists are acyclic and node-disjoint.
+    Node dummy{0, nullptr};
+    Node* tail = &dummy;
+    while (first != nullptr && second != nullptr) {
+        if (first->value <= second->value) {
+            tail->next = first;
+            first = first->next;
+        } else {
+            tail->next = second;
+            second = second->next;
+        }
+        tail = tail->next;
+    }
+    tail->next = first != nullptr ? first : second;
+    return dummy.next;
+}
+
+int main() {
+    Node four{4, nullptr};
+    Node one{1, &four};
+    Node three{3, nullptr};
+    Node two{2, &three};
+    Node* merged = mergeSorted(&one, &two);
+    vector<int> values;
+    for (Node* node = merged; node != nullptr; node = node->next) values.push_back(node->value);
+    assert((values == vector<int>{1, 2, 3, 4}));
+    assert(mergeSorted(nullptr, nullptr) == nullptr);
+}
+```
+
+### Python 3
+
+```python
+class Node:
+    def __init__(self, value: int, next_node: "Node | None" = None) -> None:
+        self.value = value
+        self.next = next_node
+
+
+def merge_sorted(first: Node | None, second: Node | None) -> Node | None:
+    """Merge two sorted, acyclic, node-disjoint lists by relinking nodes."""
+    dummy = Node(0)
+    tail = dummy
+    while first is not None and second is not None:
+        if first.value <= second.value:
+            tail.next = first
+            first = first.next
+        else:
+            tail.next = second
+            second = second.next
+        tail = tail.next
+    tail.next = first if first is not None else second
+    return dummy.next
+
+
+merged = merge_sorted(Node(1, Node(4)), Node(2, Node(3)))
+values: list[int] = []
+while merged is not None:
+    values.append(merged.value)
+    merged = merged.next
+assert values == [1, 2, 3, 4]
+assert merge_sorted(None, None) is None
+```
+
+<!-- algods:complexity -->
+## Линейное время и O(1) вспомогательных ссылок
+
+O(n+m) времени и O(1) дополнительной памяти: каждый исходный узел присоединяется один раз, а dummy — единственный локальный служебный узел.
+
+<!-- algods:edge-cases -->
+## Пустые списки, равные ключи и владение узлами
+
+Оба списка пусты; один пуст; равные значения; сильно разные длины. При равенстве выбор первого списка сохраняет стабильный межсписочный порядок. Общий узел или цикл нарушает входной контракт: функция не пытается обнаружить их за `O(1)` памяти и может зациклиться, поэтому вызывающий код обязан гарантировать раздельное владение и ацикличность.
+
+<!-- algods:tests -->
+## Тесты на голову, хвост и пустой ввод
+
+`null+null -> null`, `null+[1] -> [1]`, `[1,4]+[2,3] -> [1,2,3,4]`, равные головы и длинный остаток. Если списки пришли из ненадёжного источника, до вызова отдельно проверяют отсутствие цикла и пересечения адресов; такие структуры не передают в `mergeSorted`.
+
+<!-- algods:recognition -->
+## Сигналы слияния двух отсортированных потоков
+
+Нужно наращивать список с головы, а отдельная обработка «первого добавленного узла» начинает усложнять ветвления.
+
+<!-- algods:when-not-to-use -->
+## Когда перенаправлять исходные узлы небезопасно?
+
+Если исходные списки должны сохраниться неизменными, понадобятся новые узлы; при неотсортированном входе этот merge некорректен.
+
+<!-- algods:mini-check-1 -->
+## Мини-проверка: зачем нужен dummy?
+
+Вопрос: зачем нужен dummy, если он не входит в ответ? Ответ: он всегда существует перед первой настоящей вершиной и убирает особый случай пустого результата.
+
+<!-- algods:mini-check-2 -->
+## Мини-проверка: почему остаток можно присоединить целиком?
+
+Вопрос: почему после основного цикла можно присоединить остаток целиком? Ответ: один список уже пуст, а оставшийся суффикс сам отсортирован и не меньше последнего выбранного узла.
+
+<!-- algods:guided-practice -->
+## Проследите tail для списков 1→4 и 2→3
+
+Для `1→5→7` и `2→3→8` после каждого шага запишите `tail`, головы двух суффиксов и цепочку от `dummy.next`.
+
+<!-- algods:independent-practice -->
+## Слейте списки без создания новых узлов
+
+### Задача 1
+
+Слейте три отсортированных односвязных списка попарно, не создавая новых узлов данных.
+
+<!-- algods:takeaway -->
+## Sentinel убирает особый случай первой головы
+
+Dummy даёт постоянную точку перед головой, а tail превращает слияние в одинаковое перенаправление на каждом шаге.

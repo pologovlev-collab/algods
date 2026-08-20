@@ -11,6 +11,8 @@ export interface LeetCode75Problem {
   officialGroupOrder: number;
   officialOrderInGroup: number;
   officialOrder: number;
+  provider: 'LeetCode';
+  verifiedAt: '2026-08-20';
   primaryPattern: string;
   secondaryPatterns: string[];
   prerequisiteLessonIds: string[];
@@ -27,7 +29,13 @@ export interface LeetCode75Group {
 
 type ProblemDraft = Omit<
   LeetCode75Problem,
-  'url' | 'officialGroup' | 'officialGroupOrder' | 'officialOrderInGroup' | 'officialOrder'
+  | 'url'
+  | 'officialGroup'
+  | 'officialGroupOrder'
+  | 'officialOrderInGroup'
+  | 'officialOrder'
+  | 'provider'
+  | 'verifiedAt'
 >;
 
 const p = (
@@ -1067,6 +1075,15 @@ const rawGroups: Array<{ name: string; problems: ProblemDraft[] }> = [
   },
 ];
 
+export const LEETCODE_75_PROVENANCE = {
+  provider: 'LeetCode',
+  verifiedAt: '2026-08-20',
+  sourceUrls: [
+    'https://leetcode.com/studyplan/leetcode-75/',
+    'https://leetcode.com/graphql/',
+  ],
+} as const;
+
 let nextOfficialOrder = 1;
 
 export const leetcode75Groups: LeetCode75Group[] = rawGroups.map((group, groupIndex) => ({
@@ -1074,6 +1091,8 @@ export const leetcode75Groups: LeetCode75Group[] = rawGroups.map((group, groupIn
   order: groupIndex + 1,
   problems: group.problems.map((problem, problemIndex) => ({
     ...problem,
+    provider: LEETCODE_75_PROVENANCE.provider,
+    verifiedAt: LEETCODE_75_PROVENANCE.verifiedAt,
     url: `https://leetcode.com/problems/${problem.slug}/`,
     officialGroup: group.name,
     officialGroupOrder: groupIndex + 1,
@@ -1085,11 +1104,3 @@ export const leetcode75Groups: LeetCode75Group[] = rawGroups.map((group, groupIn
 export const leetcode75Problems: LeetCode75Problem[] = leetcode75Groups.flatMap(
   ({ problems }) => problems,
 );
-
-export const LEETCODE_75_PROVENANCE = {
-  verifiedAt: '2026-08-20',
-  sourceUrls: [
-    'https://leetcode.com/studyplan/leetcode-75/',
-    'https://leetcode.com/graphql/',
-  ],
-} as const;

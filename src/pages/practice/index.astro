@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PracticeExplorer from '../../components/PracticeExplorer.astro';
+import SupplementaryPractice from '../../components/SupplementaryPractice.astro';
+import { leetcode75Groups } from '../../data/leetcode75';
+---
+
+<BaseLayout title="Практика — AlgoDS" description="Задачи с постепенным переходом от подсказок к самостоятельному решению.">
+  <header class="page-intro shell">
+    <p class="eyebrow">От понимания к переносу</p>
+    <h1>Практика по готовности</h1>
+    <p>
+      Начните с задачи, где паттерн виден, затем перенесите идею на новый контекст и
+      закончите самостоятельным решением без подсказки в названии.
+    </p>
+  </header>
+
+  <section class="practice-ladder shell" aria-labelledby="practice-ladder-title">
+    <h2 id="practice-ladder-title">Четыре уровня работы</h2>
+    <ol>
+      <li><strong>Проверка.</strong><span>Предскажите шаг, инвариант, сложность или крайний случай внутри урока.</span></li>
+      <li><strong>С разбором.</strong><span>Решите задачу с вопросами, которые удерживают ход рассуждения.</span></li>
+      <li><strong>Перенос паттерна.</strong><span>Название техники известно, но реализацию нужно вывести самостоятельно.</span></li>
+      <li><strong>Самостоятельно.</strong><span>Сначала назовите свойства задачи; паттерн спрятан до раскрытия.</span></li>
+    </ol>
+  </section>
+
+  <div class="shell section-block">
+    <PracticeExplorer groups={leetcode75Groups} />
+  </div>
+
+  <div class="shell section-block">
+    <SupplementaryPractice />
+  </div>
+</BaseLayout>

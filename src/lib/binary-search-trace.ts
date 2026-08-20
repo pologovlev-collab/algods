@@ -14,6 +14,28 @@ export interface LowerBoundTrace {
   found: boolean;
 }
 
+export type LowerBoundCellState = 'candidate' | 'mid' | 'discarded' | 'result';
+
+export type LowerBoundTraceFrame =
+  | {
+      kind: 'initial';
+      lo: number;
+      hi: number;
+      cellStates: LowerBoundCellState[];
+    }
+  | ({
+      kind: 'decision';
+      nextLo: number;
+      nextHi: number;
+      cellStates: LowerBoundCellState[];
+    } & LowerBoundStep)
+  | {
+      kind: 'result';
+      resultIndex: number;
+      found: boolean;
+      cellStates: LowerBoundCellState[];
+    };
+
 export function createLowerBoundTrace(values: readonly number[], target: number): LowerBoundTrace {
   for (let index = 1; index < values.length; index += 1) {
     const previous = values[index - 1];
@@ -49,5 +71,40 @@ export function createLowerBoundTrace(values: readonly number[], target: number)
     steps,
     resultIndex: lo,
     found: lo < values.length && values[lo] === target,
+  };
+}
+
+export function getLowerBoundTraceFrame(trace: LowerBoundTrace, position: number): LowerBoundTraceFrame {
+  if (position < 0) {
+    return {
+      kind: 'initial',
+      lo: 0,
+      hi: trace.values.length,
+      cellStates: trace.values.map(() => 'candidate'),
+    };
+  }
+
+  if (position >= trace.steps.length) {
+    return {
+      kind: 'result',
+      resultIndex: trace.resultIndex,
+      found: trace.found,
+      cellStates: trace.values.map((_, index) => (index === trace.resultIndex ? 'result' : 'discarded')),
+    };
+  }
+
+  const step = trace.steps[position];
+  if (!step) {
+    throw new Error('Binary-search trace position does not point to a decision step.');
+  }
+
+  return {
+    kind: 'decision',
+    ...step,
+    nextLo: step.decision === 'move-right' ? step.mid + 1 : step.lo,
+    nextHi: step.decision === 'move-left' ? step.mid : step.hi,
+    cellStates: trace.values.map((_, index) =>
+      index === step.mid ? 'mid' : index >= step.lo && index < step.hi ? 'candidate' : 'discarded',
+    ),
   };
 }
