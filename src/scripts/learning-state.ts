@@ -20,6 +20,12 @@ import {
   saveProgress,
 } from '../lib/progress-storage';
 import { THEME_STORAGE_KEY, isTheme } from '../lib/theme';
+import {
+  deriveKnowledgeMapState,
+  type KnowledgeMapLesson,
+  type KnowledgeMapModel,
+  type StoredLessonStatus,
+} from '../lib/knowledge-map';
 
 const TOTAL_LESSONS = 54;
 const TOTAL_PROBLEMS = 75;
@@ -158,6 +164,39 @@ const renderState = () => {
       label.textContent = complete ? 'пройдено' : 'нужно пройти';
     });
   });
+
+  const mapData = document.querySelector<HTMLScriptElement>('[data-knowledge-map-data]');
+  if (mapData?.textContent) {
+    try {
+      const payload = JSON.parse(mapData.textContent) as {
+        map: KnowledgeMapModel;
+        lessons: KnowledgeMapLesson[];
+      };
+      const statuses = Object.fromEntries(
+        Object.entries(state.lessons).map(([id, entry]) => [id, entry.status]),
+      ) as Record<string, StoredLessonStatus>;
+      const mapState = deriveKnowledgeMapState(payload.map, payload.lessons, statuses);
+      const nextStageId = payload.lessons.find(({ id }) => id === mapState.nextLessonId)?.stage;
+
+      document.querySelectorAll<HTMLElement>('[data-map-stage-id]').forEach((element) => {
+        const stageId = Number(element.dataset.mapStageId);
+        const stageState = mapState.stageStates[stageId] ?? 'blocked';
+        element.dataset.mapStageState = stageState;
+        element.dataset.mapStageNext = String(stageId === nextStageId);
+        element.querySelectorAll<HTMLElement>('[data-map-stage-state-label]').forEach((label) => {
+          label.textContent = stageState === 'completed'
+            ? 'Завершён'
+            : stageState === 'in-progress'
+              ? 'В процессе'
+              : stageState === 'ready'
+                ? 'Можно начать'
+                : 'Нужны зависимости';
+        });
+      });
+    } catch {
+      // The map keeps its server-rendered fallback state if embedded data is malformed.
+    }
+  }
 
   document.querySelectorAll<HTMLButtonElement>('[data-bookmark-id]').forEach((button) => {
     const bookmarkId = button.dataset.bookmarkId;

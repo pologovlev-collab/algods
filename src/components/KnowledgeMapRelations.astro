@@ -1,0 +1,29 @@
+---
+import type { KnowledgeMapStageNode } from '../lib/knowledge-map';
+
+interface Props {
+  stage: KnowledgeMapStageNode;
+}
+
+const { stage } = Astro.props;
+const stageNumber = (id: number) => String(id).padStart(2, '0');
+---
+
+<dl class="knowledge-map-relations">
+  <div>
+    <dt>Опирается на</dt>
+    <dd>
+      {stage.prerequisiteStageIds.length > 0
+        ? stage.prerequisiteStageIds.map((id) => stageNumber(id)).join(', ')
+        : 'старт курса'}
+    </dd>
+  </div>
+  <div>
+    <dt>Открывает</dt>
+    <dd>
+      {stage.unlockStageIds.length > 0
+        ? stage.unlockStageIds.map((id) => stageNumber(id)).join(', ')
+        : 'итог курса'}
+    </dd>
+  </div>
+</dl>

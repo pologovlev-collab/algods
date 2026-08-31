@@ -1,0 +1,32 @@
+---
+import type { KnowledgeMapLesson } from '../lib/knowledge-map';
+
+interface Props {
+  lessonIds: string[];
+  lessons: KnowledgeMapLesson[];
+}
+
+const { lessonIds, lessons } = Astro.props;
+const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
+---
+
+<ol class="knowledge-map-lessons">
+  {lessonIds.map((id) => {
+    const lesson = lessonById.get(id);
+    return lesson && (
+      <li
+        data-lesson-id={lesson.id}
+        data-prerequisites={lesson.prerequisites.join(',')}
+        data-progress-state="blocked"
+      >
+        <a href={`/course/${lesson.slug}/`}>
+          <span>
+            <small>{lesson.id}</small>
+            <strong>{lesson.title}</strong>
+          </span>
+          <span data-lesson-state-label>Сначала пройдите зависимости</span>
+        </a>
+      </li>
+    );
+  })}
+</ol>
