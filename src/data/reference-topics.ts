@@ -2,6 +2,7 @@ export interface ReferenceTopic {
   id: string;
   slug: string;
   title: string;
+  aliases: string[];
   group: 'sorting' | 'trees' | 'graphs' | 'strings' | 'dp' | 'math' | 'techniques';
   prerequisites: string[];
   core: false;
@@ -17,6 +18,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-classic-sorts',
     slug: 'classic-sorting-algorithms',
     title: 'Классические сортировки',
+    aliases: ['non-comparison sorting', 'counting sort', 'radix sort', 'сортировка подсчётом', 'поразрядная сортировка'],
     group: 'sorting',
     prerequisites: ['s07-l01'],
     core: false,
@@ -45,6 +47,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-range-trees',
     slug: 'range-query-trees',
     title: 'Fenwick и дерево отрезков',
+    aliases: ['range queries', 'fenwick tree', 'segment tree', 'дерево Фенвика', 'дерево отрезков'],
     group: 'trees',
     prerequisites: ['s05-l01', 's10-l01'],
     core: false,
@@ -72,6 +75,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-lca-balanced',
     slug: 'lca-and-balanced-trees',
     title: 'LCA и сбалансированные деревья',
+    aliases: ['lowest common ancestor', 'lca', 'avl', 'red-black tree', 'наименьший общий предок'],
     group: 'trees',
     prerequisites: ['s10-l04'],
     core: false,
@@ -100,6 +104,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-advanced-graphs',
     slug: 'advanced-graph-algorithms',
     title: 'Продвинутые алгоритмы на графах',
+    aliases: ['advanced graph algorithms', 'mst', 'bellman ford', 'floyd warshall', 'scc', 'мосты'],
     group: 'graphs',
     prerequisites: ['s13-l02', 's13-l05', 's13-l06'],
     core: false,
@@ -128,6 +133,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-string-search',
     slug: 'advanced-string-search',
     title: 'Строковый поиск',
+    aliases: ['string search', 'kmp', 'z function', 'rolling hash', 'aho corasick', 'поиск подстроки'],
     group: 'strings',
     prerequisites: ['s02-l01', 's17-l01'],
     core: false,
@@ -155,6 +161,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-advanced-dp',
     slug: 'advanced-dynamic-programming',
     title: 'Продвинутое DP',
+    aliases: ['advanced dynamic programming', 'interval dp', 'bitmask dp', 'tree dp', 'дп по подмножествам'],
     group: 'dp',
     prerequisites: ['s16-l02', 's18-l02'],
     core: false,
@@ -182,6 +189,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-algorithmic-math',
     slug: 'algorithmic-mathematics',
     title: 'Алгоритмическая математика',
+    aliases: ['algorithmic math', 'gcd', 'modular arithmetic', 'sieve', 'fast power', 'нод'],
     group: 'math',
     prerequisites: ['s18-l01'],
     core: false,
@@ -210,6 +218,7 @@ export const referenceTopics: ReferenceTopic[] = [
     id: 'ref-meet-in-middle',
     slug: 'meet-in-the-middle',
     title: 'Meet in the middle',
+    aliases: ['meet in the middle', 'mitm', 'разделение перебора пополам'],
     group: 'techniques',
     prerequisites: ['s12-l01', 's08-l01'],
     core: false,

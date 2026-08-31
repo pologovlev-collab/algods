@@ -1,0 +1,84 @@
+---
+import {
+  REFERENCE_CATEGORIES,
+  type ReferenceEntry,
+  type ReferenceLesson,
+} from '../lib/reference';
+
+interface Props {
+  entry: ReferenceEntry;
+  lessons: ReferenceLesson[];
+}
+
+const { entry, lessons } = Astro.props;
+const category = REFERENCE_CATEGORIES.find(({ id }) => id === entry.category);
+const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
+const courseLessons = entry.courseLessonIds.map((id) => lessonById.get(id)).filter(Boolean);
+const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)).filter(Boolean);
+---
+
+<header class='reference-topic-header page-intro shell'>
+  <a class='back-link' href='/reference/'>К справочнику</a>
+  <p class='eyebrow'>{category?.title}</p>
+  <h1>{entry.title}</h1>
+  <p>{entry.definition}</p>
+</header>
+
+<div class='reference-topic-layout shell'>
+  <article class='reference-topic-content'>
+    <section class='reference-callout' aria-labelledby='reference-use-title'>
+      <p class='eyebrow'>Сигнал задачи</p>
+      <h2 id='reference-use-title'>Когда применять</h2>
+      <p>{entry.useWhen}</p>
+    </section>
+
+    <section aria-labelledby='reference-decisions-title'>
+      <h2 id='reference-decisions-title'>
+        {entry.source === 'core' ? 'Что держать в голове' : 'Как выбрать подход'}
+      </h2>
+      <ul>{entry.decisionNotes.map((note) => <li>{note}</li>)}</ul>
+    </section>
+
+    <section aria-labelledby='reference-complexity-title'>
+      <h2 id='reference-complexity-title'>Сложность</h2>
+      <ul>{entry.complexity.map((note) => <li>{note}</li>)}</ul>
+    </section>
+
+    <section aria-labelledby='reference-pitfalls-title'>
+      <h2 id='reference-pitfalls-title'>Границы и ошибки</h2>
+      <ul>{entry.pitfalls.map((note) => <li>{note}</li>)}</ul>
+    </section>
+  </article>
+
+  <aside class='reference-topic-sidebar' aria-label='Связи темы'>
+    <section>
+      <h2>Искать также</h2>
+      <p>{entry.aliases.join(' · ')}</p>
+    </section>
+
+    {courseLessons.length > 0 && (
+      <section>
+        <h2>Разобрать в курсе</h2>
+        <ul>
+          {courseLessons.map((lesson) => lesson && (
+            <li><a href={`/course/${lesson.slug}/`}>{lesson.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section>
+      <h2>Перед темой</h2>
+      {prerequisites.length > 0 ? (
+        <ul>
+          {prerequisites.map((lesson) => lesson && (
+            <li data-prerequisite-id={lesson.id}>
+              <a href={`/course/${lesson.slug}/`}>{lesson.title}</a>
+              <span data-prerequisite-label>нужно пройти</span>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Специальных предварительных уроков нет.</p>}
+    </section>
+  </aside>
+</div>

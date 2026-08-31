@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildReferenceEntries, groupReferenceEntries } from '../../lib/reference';
+
+const lessons = (await getCollection('lessons')).map(({ data }) => data);
+const groups = groupReferenceEntries(buildReferenceEntries(lessons));
+---
+
+<BaseLayout
+  title='Справочник по алгоритмам и структурам данных — AlgoDS'
+  description='Краткий русскоязычный справочник AlgoDS: сигналы задач, сложность, ограничения и связи с уроками курса.'
+>
+  <header class='page-intro shell'>
+    <p class='eyebrow'>Быстро вспомнить, затем вернуться к рассуждению</p>
+    <h1>Справочник</h1>
+    <p>
+      Не набор сокращённых уроков, а навигационный слой: найдите знакомый сигнал,
+      проверьте стоимость и границы применимости, затем откройте связанный разбор курса.
+    </p>
+  </header>
+
+  <nav class='reference-category-nav shell' aria-label='Разделы справочника'>
+    <ol>
+      {groups.map(({ category, entries }) => (
+        <li>
+          <a href={`#${category.id}`}>
+            <span>{category.title}</span>
+            <small>{entries.length}</small>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+
+  <div class='reference-directory shell'>
+    {groups.map(({ category, entries }) => (
+      <section id={category.id} aria-labelledby={`${category.id}-title`}>
+        <header>
+          <p class='eyebrow'>{String(entries.length).padStart(2, '0')} тем</p>
+          <h2 id={`${category.id}-title`}>{category.title}</h2>
+          <p>{category.description}</p>
+        </header>
+        <ol class='reference-directory__entries'>
+          {entries.map((entry) => (
+            <li id={entry.slug}>
+              <a href={entry.href}>
+                <span>
+                  <strong>{entry.title}</strong>
+                  <small>{entry.aliases.slice(0, 3).join(' · ')}</small>
+                </span>
+                <span>
+                  <span>{entry.definition}</span>
+                  <small>{entry.complexity[0]}</small>
+                </span>
+                <span aria-hidden='true'>→</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

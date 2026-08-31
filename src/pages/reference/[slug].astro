@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReferenceTopic from '../../components/ReferenceTopic.astro';
+import {
+  REFERENCE_CATEGORIES,
+  buildReferenceEntries,
+  type ReferenceEntry,
+  type ReferenceLesson,
+} from '../../lib/reference';
+
+export async function getStaticPaths() {
+  const lessons = (await getCollection('lessons')).map(({ data }) => data);
+  const entries = buildReferenceEntries(lessons);
+  return entries.map((entry) => ({ params: { slug: entry.slug }, props: { entry, entries, lessons } }));
+}
+
+interface Props {
+  entry: ReferenceEntry;
+  entries: ReferenceEntry[];
+  lessons: ReferenceLesson[];
+}
+
+const { entry, entries, lessons } = Astro.props;
+const entryIndex = entries.findIndex(({ id }) => id === entry.id);
+const previous = entryIndex > 0 ? entries[entryIndex - 1] : undefined;
+const next = entryIndex + 1 < entries.length ? entries[entryIndex + 1] : undefined;
+const category = REFERENCE_CATEGORIES.find(({ id }) => id === entry.category);
+const description = `${entry.definition} ${entry.useWhen}`;
+---
+
+<BaseLayout title={entry.title + ' — справочник AlgoDS'} description={description}>
+  <ReferenceTopic entry={entry} lessons={lessons} />
+
+  <nav class='reference-topic-navigation shell' aria-label='Навигация по справочнику'>
+    {previous ? (
+      <a href={previous.href} rel='prev'><small>Предыдущая тема</small><strong>{previous.title}</strong></a>
+    ) : <span></span>}
+    {next ? (
+      <a href={next.href} rel='next'><small>Следующая тема</small><strong>{next.title}</strong></a>
+    ) : (
+      <a href={`/reference/#${category?.id ?? 'advanced'}`}><small>Конец списка</small><strong>К разделу справочника</strong></a>
+    )}
+  </nav>
+</BaseLayout>
