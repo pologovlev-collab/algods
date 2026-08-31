@@ -341,7 +341,7 @@ pre {
   z-index: 30;
   inset-block-start: calc(100% + 0.65rem);
   inset-inline-end: 0;
-  width: min(34rem, calc(100vw - 2rem));
+  width: min(38rem, calc(100vw - 2rem));
   max-height: min(38rem, calc(100vh - 6rem));
   overflow-y: auto;
   padding: 1rem;
@@ -377,7 +377,7 @@ pre {
 
 .global-search__panel ul {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.15rem;
   margin: 0.75rem 0 0;
   padding: 0;
   list-style: none;
@@ -389,8 +389,8 @@ pre {
 
 .global-search__panel a {
   display: grid;
-  gap: 0.15rem;
-  padding: 0.7rem;
+  gap: 0.3rem;
+  padding: 0.75rem;
   border-radius: var(--radius-sm);
   color: var(--ink);
   text-decoration: none;
@@ -401,7 +401,30 @@ pre {
   background: var(--accent-soft);
 }
 
-.global-search__panel span {
+.global-search__result-heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.global-search__result-heading strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-search__result-heading small {
+  flex: 0 0 auto;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.global-search__result-context {
   overflow: hidden;
   color: var(--ink-soft);
   font-size: 0.78rem;
@@ -705,6 +728,13 @@ pre {
 
   .mobile-menu summary {
     padding-inline: 0.6rem;
+  }
+
+  .global-search__panel {
+    inset-inline: 0;
+    width: auto;
+    max-height: calc(100vh - 5rem);
+    border-radius: var(--radius-sm);
   }
 
   .hero {
