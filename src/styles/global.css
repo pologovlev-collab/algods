@@ -2006,6 +2006,13 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   color: var(--accent-ink);
 }
 
+.binary-array li[data-binary-state='result'] {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  color: var(--success);
+  font-weight: 700;
+}
+
 .binary-array li[data-binary-state='discarded'] {
   opacity: 0.35;
 }

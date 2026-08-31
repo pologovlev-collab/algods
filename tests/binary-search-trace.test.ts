@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { createLowerBoundTrace, getLowerBoundTraceFrame } from '../src/lib/binary-search-trace';
+import {
+  createLowerBoundTrace,
+  getLowerBoundTraceFrame,
+  getLowerBoundTraceFrames,
+} from '../src/lib/binary-search-trace';
 
 describe('lower-bound teaching trace', () => {
   it('shows how duplicates keep the left half in play', () => {
@@ -68,6 +72,19 @@ describe('lower-bound teaching trace', () => {
     const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
 
     expect(getLowerBoundTraceFrame(trace, trace.steps.length)).toEqual({
+      kind: 'result',
+      resultIndex: 4,
+      found: true,
+      cellStates: ['discarded', 'discarded', 'discarded', 'discarded', 'result', 'discarded', 'discarded', 'discarded'],
+    });
+  });
+
+  it('exposes a complete presentation sequence whose last frame is the result', () => {
+    const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
+    const frames = getLowerBoundTraceFrames(trace);
+
+    expect(frames).toHaveLength(4);
+    expect(frames.at(-1)).toEqual({
       kind: 'result',
       resultIndex: 4,
       found: true,

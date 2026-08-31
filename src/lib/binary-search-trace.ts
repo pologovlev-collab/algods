@@ -108,3 +108,10 @@ export function getLowerBoundTraceFrame(trace: LowerBoundTrace, position: number
     ),
   };
 }
+
+export function getLowerBoundTraceFrames(trace: LowerBoundTrace): LowerBoundTraceFrame[] {
+  return Array.from(
+    { length: trace.steps.length + 1 },
+    (_, position) => getLowerBoundTraceFrame(trace, position),
+  );
+}

@@ -1,10 +1,16 @@
 ---
-import { createLowerBoundTrace } from '../lib/binary-search-trace';
+import { createLowerBoundTrace, getLowerBoundTraceFrames } from '../lib/binary-search-trace';
 
 const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
+const frames = getLowerBoundTraceFrames(trace);
 ---
 
-<section class="binary-lab" data-binary-lab data-trace={JSON.stringify(trace)} aria-labelledby="binary-lab-title">
+<section
+  class="binary-lab"
+  data-binary-lab
+  data-trace={JSON.stringify({ ...trace, frames })}
+  aria-labelledby="binary-lab-title"
+>
   <div class="binary-lab__heading">
     <p class="eyebrow">Интерактивная трассировка</p>
     <h2 id="binary-lab-title">Граница первого элемента ≥ 8</h2>
@@ -44,6 +50,23 @@ const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
         midValue: number;
         decision: 'move-left' | 'move-right';
       }>;
+      frames: Array<
+        | {
+            kind: 'decision';
+            lo: number;
+            hi: number;
+            mid: number;
+            midValue: number;
+            decision: 'move-left' | 'move-right';
+            cellStates: Array<'candidate' | 'mid' | 'discarded' | 'result'>;
+          }
+        | {
+            kind: 'result';
+            resultIndex: number;
+            found: boolean;
+            cellStates: Array<'candidate' | 'mid' | 'discarded' | 'result'>;
+          }
+      >;
     };
     let position = -1;
     const explanation = lab.querySelector<HTMLElement>('[data-binary-explanation]');
@@ -52,25 +75,19 @@ const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
     const cells = [...lab.querySelectorAll<HTMLElement>('[data-binary-index]')];
 
     const render = () => {
-      const step = trace.steps[position];
+      const frame = position < 0 ? undefined : trace.frames[position];
       cells.forEach((cell) => {
         const index = Number(cell.dataset.binaryIndex);
-        cell.dataset.binaryState = !step
-          ? 'candidate'
-          : index === step.mid
-            ? 'mid'
-            : index >= step.lo && index < step.hi
-              ? 'candidate'
-              : 'discarded';
+        cell.dataset.binaryState = frame?.cellStates[index] ?? 'candidate';
       });
       if (position < 0 && explanation) {
         explanation.textContent = `Начальное состояние: граница находится где-то в [0, ${trace.values.length}).`;
-      } else if (step && explanation) {
+      } else if (frame?.kind === 'decision' && explanation) {
         explanation.textContent =
-          step.decision === 'move-left'
-            ? `a[${step.mid}] = ${step.midValue} ≥ ${trace.target}. Индекс ${step.mid} подходит, но ищем более левую границу: hi = ${step.mid}.`
-            : `a[${step.mid}] = ${step.midValue} < ${trace.target}. Всё слева вместе с mid не подходит: lo = ${step.mid + 1}.`;
-      } else if (explanation) {
+          frame.decision === 'move-left'
+            ? `a[${frame.mid}] = ${frame.midValue} ≥ ${trace.target}. Индекс ${frame.mid} подходит, но ищем более левую границу: hi = ${frame.mid}.`
+            : `a[${frame.mid}] = ${frame.midValue} < ${trace.target}. Всё слева вместе с mid не подходит: lo = ${frame.mid + 1}.`;
+      } else if (frame?.kind === 'result' && explanation) {
         explanation.textContent = trace.found
           ? `Границы встретились на индексе ${trace.resultIndex}: это первое вхождение ${trace.target}.`
           : `Границы встретились на индексе вставки ${trace.resultIndex}; значения ${trace.target} в массиве нет.`;
@@ -87,7 +104,7 @@ const trace = createLowerBoundTrace([1, 3, 3, 6, 8, 11, 14, 19], 8);
       render();
     });
     next?.addEventListener('click', () => {
-      position = Math.min(trace.steps.length, position + 1);
+      position = Math.min(trace.frames.length - 1, position + 1);
       render();
     });
     lab.querySelector('[data-binary-reset]')?.addEventListener('click', () => {
