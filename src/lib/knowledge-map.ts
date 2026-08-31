@@ -27,9 +27,17 @@ export interface KnowledgeMapStageNode extends KnowledgeMapStage {
   layer: number;
 }
 
+export interface KnowledgeMapFocus {
+  predecessorStageIds: number[];
+  unlockStageIds: number[];
+  edgeKeys: string[];
+}
+
 export interface KnowledgeMapModel {
   stages: KnowledgeMapStageNode[];
   edges: KnowledgeMapEdge[];
+  overviewEdges: KnowledgeMapEdge[];
+  focusByStageId: Record<number, KnowledgeMapFocus>;
   layers: number[][];
 }
 
@@ -50,6 +58,66 @@ const orderLessons = <T extends KnowledgeMapLesson>(lessons: readonly T[]): T[] 
       left.order - right.order ||
       left.id.localeCompare(right.id),
   );
+
+const edgeKey = ({ fromStageId, toStageId }: KnowledgeMapEdge): string =>
+  `${fromStageId}:${toStageId}`;
+
+const reachableStageIds = (
+  edges: readonly KnowledgeMapEdge[],
+  startStageId: number,
+  direction: 'forward' | 'backward',
+  skippedEdgeKey?: string,
+): Set<number> => {
+  const reached = new Set<number>();
+  const queue = [startStageId];
+
+  while (queue.length > 0) {
+    const currentStageId = queue.shift();
+    if (currentStageId === undefined) continue;
+    for (const edge of edges) {
+      if (edgeKey(edge) === skippedEdgeKey) continue;
+      const matches = direction === 'forward'
+        ? edge.fromStageId === currentStageId
+        : edge.toStageId === currentStageId;
+      if (!matches) continue;
+      const nextStageId = direction === 'forward' ? edge.toStageId : edge.fromStageId;
+      if (reached.has(nextStageId)) continue;
+      reached.add(nextStageId);
+      queue.push(nextStageId);
+    }
+  }
+
+  return reached;
+};
+
+const buildOverviewEdges = (edges: readonly KnowledgeMapEdge[]): KnowledgeMapEdge[] =>
+  edges.filter((edge) => !reachableStageIds(
+    edges,
+    edge.fromStageId,
+    'forward',
+    edgeKey(edge),
+  ).has(edge.toStageId));
+
+const buildFocusByStageId = (
+  stageIds: readonly number[],
+  overviewEdges: readonly KnowledgeMapEdge[],
+): Record<number, KnowledgeMapFocus> => Object.fromEntries(stageIds.map((stageId) => {
+  const predecessorStageIds = [...reachableStageIds(overviewEdges, stageId, 'backward')]
+    .sort((a, b) => a - b);
+  const predecessorPathStageIds = new Set([...predecessorStageIds, stageId]);
+  const unlockStageIds = overviewEdges
+    .filter(({ fromStageId }) => fromStageId === stageId)
+    .map(({ toStageId }) => toStageId)
+    .sort((a, b) => a - b);
+  const edgeKeys = overviewEdges
+    .filter((edge) => (
+      predecessorPathStageIds.has(edge.fromStageId) &&
+      predecessorPathStageIds.has(edge.toStageId)
+    ) || edge.fromStageId === stageId)
+    .map(edgeKey);
+
+  return [stageId, { predecessorStageIds, unlockStageIds, edgeKeys }];
+}));
 
 export function buildKnowledgeMap(
   sourceStages: readonly KnowledgeMapStage[],
@@ -137,7 +205,10 @@ export function buildKnowledgeMap(
   const layers = Array.from({ length: layerCount }, () => [] as number[]);
   for (const node of nodes) layers[node.layer]?.push(node.id);
 
-  return { stages: nodes, edges, layers };
+  const overviewEdges = buildOverviewEdges(edges);
+  const focusByStageId = buildFocusByStageId(nodes.map(({ id }) => id), overviewEdges);
+
+  return { stages: nodes, edges, overviewEdges, focusByStageId, layers };
 }
 
 export function deriveKnowledgeMapState(

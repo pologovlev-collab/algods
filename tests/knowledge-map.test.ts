@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildKnowledgeMap,
   deriveKnowledgeMapState,
+  type KnowledgeMapEdge,
   type KnowledgeMapLesson,
   type KnowledgeMapStage,
 } from '../src/lib/knowledge-map';
@@ -26,6 +27,26 @@ const lessons: KnowledgeMapLesson[] = [
   { id: 's00-l01', slug: 'budget', title: 'Ограничения', stage: 0, order: 1, prerequisites: [] },
   { id: 's01-l01', slug: 'arrays-one', title: 'Массивы', stage: 1, order: 1, prerequisites: ['s00-l02'] },
 ];
+
+const reachabilityPairs = (
+  stageIds: readonly number[],
+  edges: readonly KnowledgeMapEdge[],
+): string[] => {
+  const outgoing = new Map(stageIds.map((stageId) => [stageId, [] as number[]]));
+  edges.forEach(({ fromStageId, toStageId }) => outgoing.get(fromStageId)?.push(toStageId));
+
+  return stageIds.flatMap((fromStageId) => {
+    const visited = new Set<number>();
+    const queue = [...(outgoing.get(fromStageId) ?? [])];
+    while (queue.length > 0) {
+      const stageId = queue.shift();
+      if (stageId === undefined || visited.has(stageId)) continue;
+      visited.add(stageId);
+      queue.push(...(outgoing.get(stageId) ?? []));
+    }
+    return [...visited].sort((a, b) => a - b).map((toStageId) => `${fromStageId}:${toStageId}`);
+  });
+};
 
 describe('knowledge-map graph', () => {
   it('represents every real course stage and lesson exactly once', async () => {
@@ -67,6 +88,61 @@ describe('knowledge-map graph', () => {
     expect(JSON.stringify({ stages, lessons })).toBe(sourceSnapshot);
   });
 
+  it('removes only transitively redundant overview edges while preserving exact dependencies', () => {
+    const map = buildKnowledgeMap(stages, lessons.map((lesson) =>
+      lesson.id === 's03-l01'
+        ? { ...lesson, prerequisites: [...lesson.prerequisites, 's00-l02'] }
+        : lesson,
+    ));
+    expect(map.edges).toEqual([
+      { fromStageId: 0, toStageId: 1 },
+      { fromStageId: 0, toStageId: 2 },
+      { fromStageId: 0, toStageId: 3 },
+      { fromStageId: 1, toStageId: 3 },
+      { fromStageId: 2, toStageId: 3 },
+    ]);
+    expect(map.overviewEdges).toEqual([
+      { fromStageId: 0, toStageId: 1 },
+      { fromStageId: 0, toStageId: 2 },
+      { fromStageId: 1, toStageId: 3 },
+      { fromStageId: 2, toStageId: 3 },
+    ]);
+    expect(map.stages.find(({ id }) => id === 3)?.prerequisiteStageIds).toEqual([0, 1, 2]);
+    expect(reachabilityPairs(map.stages.map(({ id }) => id), map.edges)).toEqual(
+      reachabilityPairs(map.stages.map(({ id }) => id), map.overviewEdges),
+    );
+  });
+
+  it('derives a selected-stage focus path without promoting unrelated branches', () => {
+    const map = buildKnowledgeMap(stages, lessons);
+    const focus = map.focusByStageId[1];
+
+    expect(focus).toEqual({
+      predecessorStageIds: [0],
+      unlockStageIds: [3],
+      edgeKeys: ['0:1', '1:3'],
+    });
+  });
+
+  it('keeps the real overview sparse while preserving every course reachability relationship', async () => {
+    const documents = await readLessonDocuments(lessonDirectory);
+    const map = buildKnowledgeMap(courseStages, documents.map(({ data }) => data));
+    const stageIds = map.stages.map(({ id }) => id);
+
+    expect(map.edges).toHaveLength(55);
+    expect(map.overviewEdges).toHaveLength(30);
+    expect(reachabilityPairs(stageIds, map.overviewEdges)).toEqual(
+      reachabilityPairs(stageIds, map.edges),
+    );
+    expect(map.focusByStageId[13]?.edgeKeys).toEqual(expect.arrayContaining([
+      '10:13',
+      '11:13',
+      '13:16',
+    ]));
+    expect(map.focusByStageId[13]?.edgeKeys).not.toContain('12:18');
+    expect(map.focusByStageId[13]?.unlockStageIds).toEqual([16]);
+  });
+
   it('distinguishes blocked, ready, in-progress, and completed lesson and stage states', () => {
     const map = buildKnowledgeMap(stages, lessons);
     const active = deriveKnowledgeMapState(map, lessons, {
@@ -102,5 +178,20 @@ describe('knowledge-map graph', () => {
     expect(() => buildKnowledgeMap(stages, lessons.map((lesson) =>
       lesson.id === 's03-l01' ? { ...lesson, prerequisites: ['missing'] } : lesson,
     ))).toThrow('unknown prerequisite missing');
+  });
+
+  it('fails closed when cross-stage prerequisites form a cycle', () => {
+    const cyclicStages: KnowledgeMapStage[] = [
+      { id: 0, slug: 'zero', title: 'Нулевой', description: 'Первый этап цикла.' },
+      { id: 1, slug: 'one', title: 'Первый', description: 'Второй этап цикла.' },
+    ];
+    const cyclicLessons: KnowledgeMapLesson[] = [
+      { id: 's00-l01', slug: 'zero', title: 'Нулевой', stage: 0, order: 1, prerequisites: ['s01-l01'] },
+      { id: 's01-l01', slug: 'one', title: 'Первый', stage: 1, order: 1, prerequisites: ['s00-l01'] },
+    ];
+
+    expect(() => buildKnowledgeMap(cyclicStages, cyclicLessons)).toThrow(
+      'stage dependencies contain a cycle',
+    );
   });
 });

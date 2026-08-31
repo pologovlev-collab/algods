@@ -16,6 +16,29 @@ const stageById = new Map(map.stages.map((stage) => [stage.id, stage]));
 const initialStageId = map.stages[0]?.id ?? 0;
 const payload = JSON.stringify({ map, lessons }).replaceAll('<', '\\u003c');
 const stageNumber = (id: number) => String(id).padStart(2, '0');
+const stageLaneById: Record<number, number> = {
+  0: 3,
+  1: 3,
+  2: 3,
+  3: 3,
+  4: 2,
+  5: 4,
+  6: 2,
+  7: 3,
+  8: 3,
+  9: 1,
+  10: 3,
+  11: 2,
+  12: 4,
+  13: 2,
+  14: 5,
+  15: 4,
+  16: 3,
+  17: 1,
+  18: 5,
+  19: 3,
+  20: 3,
+};
 const lessonCount = (count: number) => {
   const finalDigit = count % 10;
   const finalTwoDigits = count % 100;
@@ -34,8 +57,8 @@ const lessonCount = (count: number) => {
       <p class="eyebrow">Навигация по зависимостям</p>
       <h2 id="knowledge-map-title">21 этап, собранный из реальных связей уроков</h2>
       <p>
-        Слева направо растёт глубина зависимостей. Линии показывают прямые связи между
-        этапами; завершение уроков меняет состояния, но не блокирует переходы.
+        Слева направо растёт глубина зависимостей. На обзоре показаны ключевые переходы,
+        а точные прямые зависимости остаются в описании выбранного этапа.
       </p>
     </div>
     <ul class="knowledge-map-legend" aria-label="Состояния карты">
@@ -47,11 +70,17 @@ const lessonCount = (count: number) => {
   </div>
 
   <div class="knowledge-map-desktop">
-    <div class="knowledge-map-scroll" tabindex="0" aria-label="Граф этапов курса; прокручивается по горизонтали">
+    <div class="knowledge-map-scroll" tabindex="0" aria-label="Обзор ключевых переходов между этапами; прокручивается по горизонтали">
       <div class="knowledge-map-canvas" style={`--map-layer-count: ${map.layers.length}`}>
         <svg class="knowledge-map-edges" aria-hidden="true">
-          {map.edges.map((edge) => (
-            <path data-map-edge data-from-stage={edge.fromStageId} data-to-stage={edge.toStageId}></path>
+          {map.overviewEdges.map((edge) => (
+            <path
+              data-map-edge
+              data-map-edge-key={`${edge.fromStageId}:${edge.toStageId}`}
+              data-from-stage={edge.fromStageId}
+              data-to-stage={edge.toStageId}
+              data-map-edge-focus="dimmed"
+            ></path>
           ))}
         </svg>
         {map.layers.map((stageIds, layer) => (
@@ -60,13 +89,19 @@ const lessonCount = (count: number) => {
             <ol>
               {stageIds.map((id) => {
                 const stage = stageById.get(id);
+                const focus = map.focusByStageId[id];
                 return stage && (
-                  <li>
+                  <li style={`--map-stage-lane: ${stageLaneById[id] ?? 3}`}>
                     <button
                       class="knowledge-map-stage"
                       type="button"
                       id={`map-stage-${stage.id}`}
                       data-map-stage-id={stage.id}
+                      data-map-stage-layer={stage.layer}
+                      data-map-predecessor-stage-ids={focus?.predecessorStageIds.join(',')}
+                      data-map-unlock-stage-ids={focus?.unlockStageIds.join(',')}
+                      data-map-focus-edge-keys={focus?.edgeKeys.join(',')}
+                      data-map-stage-focus="dimmed"
                       data-map-stage-state="blocked"
                       data-map-stage-next="false"
                       aria-controls={`map-stage-detail-${stage.id}`}
