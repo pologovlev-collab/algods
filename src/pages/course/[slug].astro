@@ -9,6 +9,7 @@ import LessonProgress from '../../components/LessonProgress.astro';
 import { leetcode75Problems } from '../../data/leetcode75';
 import { stages } from '../../data/stages';
 import { getLessonNavigation, getPracticeAnchorLessonId, orderCourseLessons } from '../../lib/course';
+import { buildReferenceEntries } from '../../lib/reference';
 
 export async function getStaticPaths() {
   const entries = await getCollection('lessons');
@@ -24,6 +25,9 @@ const orderedLessons = orderCourseLessons((await getCollection('lessons')).map((
 const { previous, next } = getLessonNavigation(orderedLessons, entry.data.id);
 const lessonById = new Map(orderedLessons.map((lesson) => [lesson.id, lesson]));
 const stage = stages.find(({ id }) => id === entry.data.stage);
+const relatedReferenceEntries = buildReferenceEntries(orderedLessons)
+  .filter((reference) => reference.patternId && entry.data.patterns.includes(reference.patternId))
+  .slice(0, 2);
 const mappedProblems = leetcode75Problems.filter(
   (problem) => getPracticeAnchorLessonId(problem.prerequisiteLessonIds, orderedLessons) === entry.data.id,
 );
@@ -84,6 +88,17 @@ const title = `${entry.data.title} — AlgoDS`;
         <div><dt>Урок</dt><dd>{entry.data.id}</dd></div>
         <div><dt>Практика</dt><dd>{entry.data.practice.miniChecks} проверки · {entry.data.practice.guidedExercises} разбор</dd></div>
       </dl>
+      <div class="lesson-context-links">
+        <h2>Связи</h2>
+        <ul>
+          <li><a href="/roadmap/">На карте знаний</a></li>
+          {relatedReferenceEntries.length > 0 ? relatedReferenceEntries.map((reference) => (
+            <li><a href={reference.href}>{reference.title} — кратко</a></li>
+          )) : (
+            <li><a href="/reference/">Открыть справочник</a></li>
+          )}
+        </ul>
+      </div>
       {entry.data.prerequisites.length > 0 && (
         <div class="lesson-prerequisites">
           <h2>Перед этим</h2>

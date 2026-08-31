@@ -315,6 +315,10 @@ pre {
   background: var(--surface-subtle);
 }
 
+.theme-toggle__short {
+  display: none;
+}
+
 .mobile-menu {
   display: none;
 }
@@ -678,7 +682,7 @@ pre {
   color: var(--ink);
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 58rem) {
   .desktop-nav {
     display: none;
   }
@@ -728,6 +732,14 @@ pre {
 
   .mobile-menu summary {
     padding-inline: 0.6rem;
+  }
+
+  .theme-toggle__long {
+    display: none;
+  }
+
+  .theme-toggle__short {
+    display: inline;
   }
 
   .global-search__panel {
@@ -823,6 +835,23 @@ pre {
 
 .page-intro .button {
   margin-top: 1rem;
+}
+
+.page-context-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.page-context-links a {
+  color: var(--ink-soft);
+  text-underline-offset: 0.22em;
+}
+
+.page-context-links a:hover {
+  color: var(--accent-strong);
 }
 
 .page-intro--with-gauge {
@@ -1058,10 +1087,12 @@ pre {
   color: var(--ink);
 }
 
+.lesson-context-links,
 .lesson-prerequisites {
   margin-top: 2rem;
 }
 
+.lesson-context-links h2,
 .lesson-prerequisites h2 {
   margin-bottom: 0.65rem;
   font-size: 0.78rem;
@@ -1071,6 +1102,16 @@ pre {
 
 .lesson-prerequisites ul {
   padding-left: 1rem;
+}
+
+.lesson-context-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson-context-links li + li {
+  margin-top: 0.45rem;
 }
 
 .lesson-tools {

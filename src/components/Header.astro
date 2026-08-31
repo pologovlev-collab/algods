@@ -63,5 +63,10 @@ const isActive = (href: string) => currentPath === href || currentPath.startsWit
         search.open = false;
       });
     });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      menu.open = false;
+      menu.querySelector<HTMLElement>('summary')?.focus();
+    });
   });
 </script>

@@ -23,6 +23,10 @@ const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data 
     <a class="button button--primary" href={`/course/${lessons[0]?.slug}/`} data-continue-course>
       Начать первый урок
     </a>
+    <nav class="page-context-links" aria-label="Связанные разделы курса">
+      <a href="/roadmap/">Посмотреть зависимости на карте</a>
+      <a href="/reference/">Открыть краткий справочник</a>
+    </nav>
   </header>
 
   <div class="course-layout shell">

@@ -1,32 +1,3 @@
----
-import { getCollection } from 'astro:content';
-
-import { leetcode75Problems } from '../data/leetcode75';
-import { stages } from '../data/stages';
-import { supplementaryProblems } from '../data/supplementary-practice';
-import { sortLessons } from '../lib/content';
-import { buildReferenceEntries } from '../lib/reference';
-import { buildSearchIndex } from '../lib/search-index';
-import type { SearchEntryType } from '../lib/search';
-
-const lessons = sortLessons(await getCollection('lessons')).map(({ data }) => data);
-const references = buildReferenceEntries(lessons);
-const entries = buildSearchIndex({
-  lessons,
-  stages,
-  references,
-  leetcodeProblems: leetcode75Problems,
-  supplementaryProblems,
-});
-const typeLabels: Record<SearchEntryType, string> = {
-  section: 'Раздел',
-  stage: 'Этап',
-  lesson: 'Урок',
-  reference: 'Справочник',
-  practice: 'Задача',
-};
----
-
 <details class='global-search' data-global-search>
   <summary>Поиск</summary>
   <div class='global-search__panel'>
@@ -43,77 +14,87 @@ const typeLabels: Record<SearchEntryType, string> = {
     <p id='global-search-status' class='global-search__status' aria-live='polite' data-global-search-status>
       Ищите по-русски или по-английски.
     </p>
-    <ul id='global-search-results' data-global-search-results>
-      {entries.map((entry) => (
-        <li
-          data-global-search-entry
-          data-search-id={entry.id}
-          data-search-type={entry.type}
-          data-search-order={entry.sourceOrder}
-          data-search-title={entry.title}
-          data-search-context={entry.context}
-          data-search-aliases={JSON.stringify(entry.aliases)}
-          data-search-topics={JSON.stringify(entry.topics)}
-          hidden
-        >
-          <a href={entry.href}>
-            <span class='global-search__result-heading'>
-              <strong>{entry.title}</strong>
-              <small>{typeLabels[entry.type]}</small>
-            </span>
-            <span class='global-search__result-context'>{entry.context}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <ul id='global-search-results' data-global-search-results></ul>
   </div>
 </details>
 
 <script>
   import { rankSearchEntries, type SearchEntry, type SearchEntryType } from '../lib/search';
 
-  const parseTextList = (value: string | undefined): string[] => {
-    if (!value) return [];
-    try {
-      const parsed: unknown = JSON.parse(value);
-      return Array.isArray(parsed) && parsed.every((item) => typeof item === 'string') ? parsed : [];
-    } catch {
-      return [];
-    }
+  const typeLabels: Record<SearchEntryType, string> = {
+    section: 'Раздел',
+    stage: 'Этап',
+    lesson: 'Урок',
+    reference: 'Справочник',
+    practice: 'Задача',
+  };
+
+  const isSearchEntry = (value: unknown): value is SearchEntry => {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Partial<SearchEntry>;
+    return typeof candidate.id === 'string'
+      && typeof candidate.type === 'string'
+      && candidate.type in typeLabels
+      && typeof candidate.href === 'string'
+      && typeof candidate.title === 'string'
+      && Array.isArray(candidate.aliases)
+      && candidate.aliases.every((item) => typeof item === 'string')
+      && Array.isArray(candidate.topics)
+      && candidate.topics.every((item) => typeof item === 'string')
+      && typeof candidate.context === 'string'
+      && typeof candidate.sourceOrder === 'number';
   };
 
   document.querySelectorAll<HTMLDetailsElement>('[data-global-search]').forEach((search) => {
     const input = search.querySelector<HTMLInputElement>('[data-global-search-input]');
     const status = search.querySelector<HTMLElement>('[data-global-search-status]');
-    const results = search.querySelector<HTMLElement>('[data-global-search-results]');
-    const elements = [...search.querySelectorAll<HTMLElement>('[data-global-search-entry]')];
-    const elementById = new Map(elements.map((element) => [element.dataset.searchId ?? '', element]));
-    const indexed: SearchEntry[] = elements.map((element) => ({
-      id: element.dataset.searchId ?? '',
-      type: (element.dataset.searchType ?? 'section') as SearchEntryType,
-      href: element.querySelector<HTMLAnchorElement>('a')?.getAttribute('href') ?? '',
-      title: element.dataset.searchTitle ?? '',
-      aliases: parseTextList(element.dataset.searchAliases),
-      topics: parseTextList(element.dataset.searchTopics),
-      context: element.dataset.searchContext ?? '',
-      sourceOrder: Number(element.dataset.searchOrder),
-    }));
+    const results = search.querySelector<HTMLUListElement>('[data-global-search-results]');
+    let indexed: SearchEntry[] | undefined;
+    let indexRequest: Promise<void> | undefined;
 
     const visibleLinks = () => [
-      ...(results?.querySelectorAll<HTMLAnchorElement>('[data-global-search-entry]:not([hidden]) a') ?? []),
+      ...(results?.querySelectorAll<HTMLAnchorElement>('a') ?? []),
     ];
 
+    const moveResultFocus = (current: HTMLAnchorElement | null, delta: number) => {
+      const links = visibleLinks();
+      if (links.length === 0) return;
+      const currentIndex = current ? links.indexOf(current) : (delta > 0 ? -1 : 0);
+      links[(currentIndex + delta + links.length) % links.length]?.focus();
+    };
+
+    const createResult = (entry: SearchEntry): HTMLLIElement => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = entry.href;
+
+      const heading = document.createElement('span');
+      heading.className = 'global-search__result-heading';
+      const title = document.createElement('strong');
+      title.textContent = entry.title;
+      const type = document.createElement('small');
+      type.textContent = typeLabels[entry.type];
+      heading.append(title, type);
+
+      const context = document.createElement('span');
+      context.className = 'global-search__result-context';
+      context.textContent = entry.context;
+      link.append(heading, context);
+      link.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        moveResultFocus(link, event.key === 'ArrowDown' ? 1 : -1);
+      });
+      item.append(link);
+      return item;
+    };
+
     const render = () => {
+      if (!indexed) return;
       const query = input?.value ?? '';
       const allMatches = rankSearchEntries(indexed, query, indexed.length);
       const matches = allMatches.slice(0, 10);
-      elements.forEach((element) => { element.hidden = true; });
-      matches.forEach(({ id }) => {
-        const element = elementById.get(id);
-        if (!element) return;
-        element.hidden = false;
-        results?.append(element);
-      });
+      results?.replaceChildren(...matches.map(createResult));
 
       if (!status) return;
       status.textContent = query.trim().length === 0
@@ -125,11 +106,23 @@ const typeLabels: Record<SearchEntryType, string> = {
             : `Найдено: ${matches.length}`;
     };
 
-    const moveResultFocus = (current: HTMLAnchorElement | null, delta: number) => {
-      const links = visibleLinks();
-      if (links.length === 0) return;
-      const currentIndex = current ? links.indexOf(current) : (delta > 0 ? -1 : 0);
-      links[(currentIndex + delta + links.length) % links.length]?.focus();
+    const loadIndex = (): Promise<void> => {
+      if (indexed) return Promise.resolve();
+      if (indexRequest) return indexRequest;
+      if (status) status.textContent = 'Загружаем поисковый индекс…';
+      indexRequest = (async () => {
+        try {
+          const response = await fetch('/search-index.json', { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error(`Search index returned ${response.status}.`);
+          const parsed: unknown = await response.json();
+          indexed = Array.isArray(parsed) ? parsed.filter(isSearchEntry) : [];
+          render();
+        } catch {
+          if (status) status.textContent = 'Поиск сейчас недоступен. Обновите страницу и попробуйте снова.';
+          indexRequest = undefined;
+        }
+      })();
+      return indexRequest;
     };
 
     search.addEventListener('toggle', () => {
@@ -138,26 +131,21 @@ const typeLabels: Record<SearchEntryType, string> = {
         menu.open = false;
       });
       window.requestAnimationFrame(() => input?.focus());
+      void loadIndex();
     });
-    input?.addEventListener('input', render);
+    input?.addEventListener('input', () => {
+      if (indexed) render();
+      else void loadIndex();
+    });
     input?.addEventListener('keydown', (event) => {
       if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
       event.preventDefault();
       moveResultFocus(null, event.key === 'ArrowDown' ? 1 : -1);
-    });
-    elements.forEach((element) => {
-      const link = element.querySelector<HTMLAnchorElement>('a');
-      link?.addEventListener('keydown', (event) => {
-        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-        event.preventDefault();
-        moveResultFocus(link, event.key === 'ArrowDown' ? 1 : -1);
-      });
     });
     search.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
       search.open = false;
       search.querySelector<HTMLElement>('summary')?.focus();
     });
-    render();
   });
 </script>

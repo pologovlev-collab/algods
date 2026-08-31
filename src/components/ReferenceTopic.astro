@@ -68,6 +68,11 @@ const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)
     )}
 
     <section>
+      <h2>Зависимости</h2>
+      <p><a href='/roadmap/'>Посмотреть структуру на карте знаний</a></p>
+    </section>
+
+    <section>
       <h2>Перед темой</h2>
       {prerequisites.length > 0 ? (
         <ul>
