@@ -28,6 +28,26 @@
 
 Трассировка heapify для `[3,1,2]`: после линейного просеивания минимум 1 оказывается в корне; последовательные извлечения дают 1, 2, 3, хотя внутренний массив между извлечениями не отсортирован.
 
+## Куча — полное бинарное дерево внутри массива
+
+Полное бинарное дерево заполняет уровни сверху вниз, а последний уровень — слева направо. Поэтому ссылки на узлы не нужны: при нулевой индексации для позиции `i` вычисляются
+
+- родитель: `(i - 1) / 2` с целочисленным делением, если `i > 0`;
+- левый ребёнок: `2 * i + 1`;
+- правый ребёнок: `2 * i + 2`.
+
+Форма автоматически даёт высоту `O(log n)`. Это не BST: левый ребёнок не обязан быть меньше правого, а поиск произвольного ключа может потребовать просмотра всей кучи.
+
+## Heap order связывает только родителя и детей
+
+В min-heap значение родителя не больше значений детей; в max-heap — не меньше. По транзитивности корень становится глобальным минимумом или максимумом, хотя остальные элементы не отсортированы.
+
+После добавления нового элемента в конец нарушиться может только путь к корню. **sift-up** меняет его с родителем, пока инвариант не восстановится. При извлечении корня последний элемент переносится наверх; **sift-down** меняет его с лучшим ребёнком и ремонтирует один путь вниз.
+
+## Heapify начинает снизу, где работы почти нет
+
+Листья уже являются корректными кучами из одного элемента. Поэтому heapify запускает sift-down от последнего внутреннего узла к корню. Узлов, способных пройти много уровней, мало, а большинство находится рядом с листьями. Сумма работ по высотам ограничена `O(n)`, поэтому построение не равно `n` независимым вставкам `O(n log n)`.
+
 <!-- algods:problem-shape -->
 ## Как многократно извлекать текущий минимум?
 
@@ -59,31 +79,84 @@
 Если все n значений уже известны, выполнить heapify за O(n). Если они приходят потоком, добавлять push по O(log n). Затем читать вершину и делать pop по O(log n).
 
 <!-- algods:implementation -->
-## Построение и извлечение из heap на C++17 и Python 3
+## Учебная min-heap и библиотечные формы на C++17 и Python 3
 
 ### C++17
 
 ```cpp
-#include <algorithm>
 #include <cassert>
 #include <functional>
+#include <queue>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 using namespace std;
 
-vector<int> sortedByHeapify(vector<int> values) {
-    make_heap(values.begin(), values.end(), greater<int>{});
-    vector<int> answer;
-    while (!values.empty()) {
-        pop_heap(values.begin(), values.end(), greater<int>{});
-        answer.push_back(values.back());
-        values.pop_back();
+class MinHeap {
+    vector<int> data;
+
+    void siftUp(int index) {
+        while (index > 0) {
+            int parent = (index - 1) / 2;
+            if (data[parent] <= data[index]) break;
+            swap(data[parent], data[index]);
+            index = parent;
+        }
     }
-    return answer;
-}
+
+    void siftDown(int index) {
+        while (true) {
+            int best = index;
+            int left = 2 * index + 1;
+            int right = 2 * index + 2;
+            if (left < static_cast<int>(data.size()) && data[left] < data[best]) best = left;
+            if (right < static_cast<int>(data.size()) && data[right] < data[best]) best = right;
+            if (best == index) return;
+            swap(data[index], data[best]);
+            index = best;
+        }
+    }
+
+public:
+    explicit MinHeap(vector<int> values) : data(move(values)) {
+        for (int index = static_cast<int>(data.size()) / 2 - 1; index >= 0; --index) {
+            siftDown(index);
+        }
+    }
+
+    void push(int value) {
+        data.push_back(value);
+        siftUp(static_cast<int>(data.size()) - 1);
+    }
+
+    int top() const {
+        if (data.empty()) throw out_of_range("empty heap");
+        return data.front();
+    }
+
+    int popMin() {
+        int answer = top();
+        data.front() = data.back();
+        data.pop_back();
+        if (!data.empty()) siftDown(0);
+        return answer;
+    }
+};
 
 int main() {
-    assert((sortedByHeapify({3, 1, 2}) == vector<int>{1, 2, 3}));
-    assert(sortedByHeapify({}).empty());
+    MinHeap heap({3, 1, 2});
+    assert(heap.popMin() == 1);
+    heap.push(0);
+    assert(heap.top() == 0);
+
+    priority_queue<int> maximums;
+    priority_queue<int, vector<int>, greater<int>> minimums;
+    maximums.push(3);
+    maximums.push(1);
+    minimums.push(3);
+    minimums.push(1);
+    assert(maximums.top() == 3);
+    assert(minimums.top() == 1);
 }
 ```
 
@@ -93,25 +166,71 @@ int main() {
 import heapq
 
 
-minimums = [3, 1, 2]
-heapq.heapify(minimums)
-ordered = [heapq.heappop(minimums) for _ in range(len(minimums))]
-assert ordered == [1, 2, 3]
+class MinHeap:
+    def __init__(self, values: list[int]) -> None:
+        self.data = values.copy()
+        for index in range(len(self.data) // 2 - 1, -1, -1):
+            self._sift_down(index)
 
-empty: list[int] = []
-heapq.heapify(empty)
-assert empty == []
+    def _sift_up(self, index: int) -> None:
+        while index > 0:
+            parent = (index - 1) // 2
+            if self.data[parent] <= self.data[index]:
+                return
+            self.data[parent], self.data[index] = self.data[index], self.data[parent]
+            index = parent
+
+    def _sift_down(self, index: int) -> None:
+        while True:
+            left = 2 * index + 1
+            right = 2 * index + 2
+            best = index
+            if left < len(self.data) and self.data[left] < self.data[best]:
+                best = left
+            if right < len(self.data) and self.data[right] < self.data[best]:
+                best = right
+            if best == index:
+                return
+            self.data[index], self.data[best] = self.data[best], self.data[index]
+            index = best
+
+    def push(self, value: int) -> None:
+        self.data.append(value)
+        self._sift_up(len(self.data) - 1)
+
+    def top(self) -> int:
+        if not self.data:
+            raise IndexError("empty heap")
+        return self.data[0]
+
+    def pop_min(self) -> int:
+        answer = self.top()
+        self.data[0] = self.data[-1]
+        self.data.pop()
+        if self.data:
+            self._sift_down(0)
+        return answer
+
+
+heap = MinHeap([3, 1, 2])
+assert heap.pop_min() == 1
+heap.push(0)
+assert heap.top() == 0
+
+minimums = [3, 1]
+heapq.heapify(minimums)
+assert heapq.heappop(minimums) == 1
 ```
 
 <!-- algods:complexity -->
 ## Heapify O(n), а n последовательных push — O(n log n)
 
-Последовательные n вызовов push стоят O(n log n). Heapify готового массива просеивает много узлов на малую глубину и строит кучу за O(n). После построения top — O(1), каждый pop — O(log n), память контейнера O(n).
+Последовательные n вызовов push стоят O(n log n). Heapify готового массива просеивает много узлов на малую глубину и строит кучу за O(n). После построения top — O(1), push и pop — O(log n), память контейнера O(n). Внутренний массив занимает O(n), а учебная реализация выполняет sift-up/sift-down итеративно с O(1) дополнительной памятью.
 
 <!-- algods:edge-cases -->
 ## Пустая куча, дубликаты и изменённый внутренний массив
 
-Пустой поток; дубликаты; отрицательные; один элемент. `priority_queue` C++ по умолчанию max-heap, `heapq` Python — min-heap.
+Пустой поток; дубликаты; отрицательные; один элемент. Чтение или извлечение из пустой кучи требует явного контракта. `std::priority_queue` C++ по умолчанию max-heap; min-heap задают компаратором `greater`. Модуль Python `heapq` работает с обычным списком как с min-heap и не предоставляет отдельный класс-контейнер.
 
 <!-- algods:tests -->
 ## Тесты на порядок последовательных извлечений
@@ -126,7 +245,7 @@ assert empty == []
 <!-- algods:when-not-to-use -->
 ## Когда достаточно один раз отсортировать массив?
 
-Для одного глобального минимума достаточно линейного прохода; для поиска по произвольному ключу heap неудобна.
+Для одного глобального минимума достаточно линейного прохода; если нужны все элементы один раз по порядку, обычная сортировка часто проще. Для поиска произвольного ключа, проверки принадлежности или диапазонного обхода heap неудобна. Куча особенно полезна для top-k, потокового экстремума и k-way merge, где набор меняется между извлечениями.
 
 <!-- algods:mini-check-1 -->
 ## Мини-проверка: обязана ли куча быть отсортирована?
