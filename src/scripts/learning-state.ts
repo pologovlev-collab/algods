@@ -26,6 +26,11 @@ import {
   type KnowledgeMapModel,
   type StoredLessonStatus,
 } from '../lib/knowledge-map';
+import {
+  deriveCourseContinuation,
+  getCourseLessonProgressState,
+  type StoredCourseLessonStatus,
+} from '../lib/course-progress';
 
 const TOTAL_LESSONS = 54;
 const TOTAL_PROBLEMS = 75;
@@ -113,6 +118,9 @@ const renderState = () => {
       .filter(([, entry]) => entry.status === 'completed')
       .map(([id]) => id),
   );
+  const lessonStatuses = Object.fromEntries(
+    Object.entries(state.lessons).map(([id, entry]) => [id, entry.status]),
+  ) as Record<string, StoredCourseLessonStatus>;
 
   document.querySelectorAll<HTMLElement>('[data-lesson-id]').forEach((element) => {
     const lessonId = element.dataset.lessonId;
@@ -121,20 +129,20 @@ const renderState = () => {
     const prerequisites = (element.dataset.prerequisites ?? '')
       .split(',')
       .filter(Boolean);
-    const readiness =
-      savedStatus === 'completed'
-        ? 'completed'
-        : prerequisites.every((id) => completed.has(id))
-          ? 'ready'
-          : 'blocked';
+    const readiness = getCourseLessonProgressState(
+      { id: lessonId, prerequisites },
+      lessonStatuses,
+    );
     element.dataset.progressState = readiness;
     element.querySelectorAll<HTMLElement>('[data-lesson-state-label]').forEach((label) => {
       label.textContent =
         readiness === 'completed'
           ? 'Завершён'
-          : readiness === 'ready'
-            ? savedStatus === 'in-progress' ? 'В процессе' : 'Можно начать'
-            : 'Сначала пройдите зависимости';
+          : readiness === 'in-progress'
+            ? 'В процессе'
+            : readiness === 'ready'
+              ? 'Можно начать'
+              : 'Сначала пройдите зависимости';
     });
     element.querySelectorAll<HTMLButtonElement>('[data-lesson-status-value]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.lessonStatusValue === savedStatus));
@@ -275,15 +283,11 @@ const renderState = () => {
   } catch {
     coursePlan = [];
   }
-  const continueLesson =
-    coursePlan.find(
-      ({ id, prerequisites }) =>
-        !completed.has(id) && prerequisites.every((prerequisite) => completed.has(prerequisite)),
-    ) ?? coursePlan.find(({ id }) => !completed.has(id));
+  const continuation = deriveCourseContinuation(coursePlan, lessonStatuses);
   document.querySelectorAll<HTMLAnchorElement>('[data-continue-course]').forEach((link) => {
-    if (continueLesson) {
-      link.href = continueLesson.href;
-      link.textContent = completed.size === 0 ? 'Начать первый урок' : 'Продолжить курс';
+    if (continuation) {
+      link.href = continuation.lesson.href;
+      link.textContent = continuation.action === 'start' ? 'Начать первый урок' : 'Продолжить курс';
     } else if (coursePlan.length > 0) {
       link.href = '/course/';
       link.textContent = 'Повторить курс';
@@ -351,6 +355,7 @@ const applyPracticeFilters = () => {
       explorer.querySelector<HTMLInputElement>('[data-filter-query]')?.value.trim().toLocaleLowerCase('ru') ?? '';
     const stage = explorer.querySelector<HTMLSelectElement>('[data-filter-stage]')?.value ?? 'all';
     const mode = explorer.querySelector<HTMLSelectElement>('[data-filter-mode]')?.value ?? 'all';
+    const provider = explorer.querySelector<HTMLSelectElement>('[data-filter-provider]')?.value ?? 'all';
     const status = explorer.querySelector<HTMLSelectElement>('[data-filter-status]')?.value ?? 'all';
     let visible = 0;
 
@@ -360,6 +365,7 @@ const applyPracticeFilters = () => {
       const matches =
         (!query || (row.dataset.searchText ?? '').includes(query)) &&
         (stage === 'all' || row.dataset.stage === stage) &&
+        (provider === 'all' || row.dataset.provider === provider) &&
         (mode === 'all' || row.dataset.mode === mode) &&
         (status === 'all' || problemStatus === status);
       row.hidden = !matches;

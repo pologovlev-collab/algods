@@ -64,4 +64,13 @@ describe('course reference', () => {
       lesson.id === binarySearch.id ? { ...lesson, patterns: ['linear-scan'] } : lesson,
     ))).toThrow('does not teach pattern binary-search');
   });
+
+  it('distinguishes value-only and stable-record memory costs for counting sort', () => {
+    const sorting = referenceTopics.find(({ id }) => id === 'ref-classic-sorts');
+    const countingComplexity = sorting?.complexity.find((entry) => entry.startsWith('Counting sort:'));
+
+    expect(countingComplexity).toContain('O(k)');
+    expect(countingComplexity).toContain('O(n + k)');
+    expect(countingComplexity).toMatch(/стабильн/i);
+  });
 });

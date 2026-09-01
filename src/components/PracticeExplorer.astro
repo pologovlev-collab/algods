@@ -1,18 +1,21 @@
 ---
 import { getCollection } from 'astro:content';
 
-import type { LeetCode75Group, LeetCode75Problem } from '../data/leetcode75';
+import type { LeetCode75Group } from '../data/leetcode75';
+import type { SupplementaryProblem } from '../data/supplementary-practice';
 import { orderPracticeProblems } from '../lib/course';
+import { buildPracticeExplorerProblems } from '../lib/practice-explorer';
 import ProblemStatus from './ProblemStatus.astro';
 
 interface Props {
   groups: LeetCode75Group[];
+  additionalProblems?: SupplementaryProblem[];
   grouped?: boolean;
   showVerification?: boolean;
 }
 
-const { groups, grouped = false, showVerification = false } = Astro.props;
-const problems: LeetCode75Problem[] = groups.flatMap(({ problems }) => problems);
+const { groups, additionalProblems = [], grouped = false, showVerification = false } = Astro.props;
+const problems = buildPracticeExplorerProblems(groups, additionalProblems);
 const displayProblems = grouped ? problems : orderPracticeProblems(problems);
 const lessonById = new Map((await getCollection('lessons')).map(({ data }) => [data.id, data]));
 const stageOptions = [...new Set(problems.map(({ recommendedStage }) => recommendedStage))].sort((a, b) => a - b);
@@ -22,6 +25,15 @@ const modeLabels = {
   independent: 'Самостоятельно',
 } as const;
 const difficultyLabel = { Easy: 'Легко', Medium: 'Средне', Hard: 'Сложно' } as const;
+const providers = [...new Set(problems.map(({ providerId, provider }) => JSON.stringify([providerId, provider])))]
+  .map((entry) => JSON.parse(entry) as [string, string]);
+const displayGroups = grouped
+  ? groups.map(({ name, order }) => ({
+      name,
+      order,
+      problems: displayProblems.filter(({ officialGroup }) => officialGroup === name),
+    }))
+  : [{ name: 'Практика', order: 1, problems: displayProblems }];
 ---
 
 <div class="practice-explorer" data-practice-explorer>
@@ -37,6 +49,15 @@ const difficultyLabel = { Easy: 'Легко', Medium: 'Средне', Hard: 'С�
         {stageOptions.map((stage) => <option value={stage}>Этап {stage}</option>)}
       </select>
     </label>
+    {providers.length > 1 && (
+      <label>
+        <span>Платформа</span>
+        <select data-filter-provider>
+          <option value="all">Все платформы</option>
+          {providers.map(([id, name]) => <option value={id}>{name}</option>)}
+        </select>
+      </label>
+    )}
     <label>
       <span>Режим</span>
       <select data-filter-mode>
@@ -63,7 +84,7 @@ const difficultyLabel = { Easy: 'Легко', Medium: 'Средне', Hard: 'С�
     <p class="verification-note">Состав и порядок сверены с официальным LeetCode 20 августа 2026 года.</p>
   )}
 
-  {(grouped ? groups : [{ name: 'Практика', order: 1, problems: displayProblems }]).map((group) => (
+  {displayGroups.map((group) => (
     <section
       class="practice-group"
       data-practice-group
@@ -80,12 +101,13 @@ const difficultyLabel = { Easy: 'Легко', Medium: 'Средне', Hard: 'С�
             {group.problems.map((problem) => (
               <tr
                 data-practice-row
-                data-problem-id={`leetcode:${problem.id}`}
+                data-problem-id={problem.progressId}
+                data-provider={problem.providerId}
                 data-stage={problem.recommendedStage}
                 data-mode={problem.practiceMode}
                 data-problem-prerequisites={problem.prerequisiteLessonIds.join(',')}
                 data-problem-readiness="blocked"
-                data-search-text={`${problem.id} ${problem.title} ${problem.primaryPattern} ${problem.secondaryPatterns.join(' ')}`.toLocaleLowerCase('ru')}
+                data-search-text={problem.searchText}
               >
                 <td>
                   <a href={problem.url} target="_blank" rel="noopener noreferrer">
@@ -110,7 +132,7 @@ const difficultyLabel = { Easy: 'Легко', Medium: 'Средне', Hard: 'С�
                   <a href={`/course/#stage-${problem.recommendedStage}`}>Этап {problem.recommendedStage}</a>
                   <small data-problem-readiness-label>Зависимости не завершены</small>
                 </td>
-                <td><ProblemStatus problemId={`leetcode:${problem.id}`} title={problem.title} /></td>
+                <td><ProblemStatus problemId={problem.progressId} title={problem.title} /></td>
               </tr>
             ))}
           </tbody>

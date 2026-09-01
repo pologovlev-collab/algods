@@ -1,3 +1,5 @@
+import { deriveCourseLessonStates, selectCourseContinuation } from './course-progress';
+
 export interface KnowledgeMapStage {
   id: number;
   slug: string;
@@ -217,20 +219,10 @@ export function deriveKnowledgeMapState(
   statuses: Readonly<Record<string, StoredLessonStatus | undefined>>,
 ): KnowledgeMapState {
   const lessons = orderLessons(sourceLessons);
-  const completedLessonIds = new Set(
-    lessons.filter(({ id }) => statuses[id] === 'completed').map(({ id }) => id),
-  );
-  const lessonStates: Record<string, KnowledgeLessonState> = {};
-
-  for (const lesson of lessons) {
-    lessonStates[lesson.id] = statuses[lesson.id] === 'completed'
-      ? 'completed'
-      : statuses[lesson.id] === 'in-progress'
-        ? 'in-progress'
-        : lesson.prerequisites.every((id) => completedLessonIds.has(id))
-          ? 'ready'
-          : 'blocked';
-  }
+  const lessonStates = deriveCourseLessonStates(lessons, statuses) as Record<
+    string,
+    KnowledgeLessonState
+  >;
 
   const stageStates: Record<number, KnowledgeStageState> = {};
   for (const stage of map.stages) {
@@ -244,8 +236,7 @@ export function deriveKnowledgeMapState(
           : 'blocked';
   }
 
-  const nextLesson = lessons.find(({ id }) => lessonStates[id] === 'in-progress')
-    ?? lessons.find(({ id }) => lessonStates[id] === 'ready');
+  const nextLesson = selectCourseContinuation(lessons, statuses);
 
   return {
     lessonStates,

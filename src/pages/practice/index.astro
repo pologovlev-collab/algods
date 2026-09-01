@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PracticeExplorer from '../../components/PracticeExplorer.astro';
-import SupplementaryPractice from '../../components/SupplementaryPractice.astro';
 import { leetcode75Groups } from '../../data/leetcode75';
+import { supplementaryProblems } from '../../data/supplementary-practice';
 ---
 
 <BaseLayout title="Практика — AlgoDS" description="Задачи с постепенным переходом от подсказок к самостоятельному решению.">
@@ -10,8 +10,8 @@ import { leetcode75Groups } from '../../data/leetcode75';
     <p class="eyebrow">От понимания к переносу</p>
     <h1>Практика по готовности</h1>
     <p>
-      Начните с задачи, где паттерн виден, затем перенесите идею на новый контекст и
-      закончите самостоятельным решением без подсказки в названии.
+      Единый каталог объединяет задачи разных платформ. Фильтруйте их по платформе,
+      этапу, режиму и статусу, а затем переходите от разбора к самостоятельному решению.
     </p>
   </header>
 
@@ -26,10 +26,6 @@ import { leetcode75Groups } from '../../data/leetcode75';
   </section>
 
   <div class="shell section-block">
-    <PracticeExplorer groups={leetcode75Groups} />
-  </div>
-
-  <div class="shell section-block">
-    <SupplementaryPractice />
+    <PracticeExplorer groups={leetcode75Groups} additionalProblems={supplementaryProblems} />
   </div>
 </BaseLayout>
