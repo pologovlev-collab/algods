@@ -1,4 +1,6 @@
 ---
+import { Code } from 'astro:components';
+
 import {
   REFERENCE_CATEGORIES,
   type ReferenceEntry,
@@ -32,6 +34,52 @@ const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)
       <p>{entry.useWhen}</p>
     </section>
 
+    {entry.deepDives && entry.deepDives.length > 0 && (
+      <nav class='reference-topic-mobile-toc' aria-labelledby='reference-mobile-toc-title'>
+        <p class='eyebrow'>Навигация</p>
+        <h2 id='reference-mobile-toc-title'>На этой странице</h2>
+        <ol>
+          {entry.deepDives.map((deepDive) => (
+            <li><a href={`#${deepDive.id}`}>{deepDive.title}</a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    {entry.deepDives?.map((deepDive) => (
+      <section class='reference-deep-dive' id={deepDive.id} aria-labelledby={`${deepDive.id}-title`}>
+        <p class='eyebrow'>Разбор механики</p>
+        <h2 id={`${deepDive.id}-title`}>{deepDive.title}</h2>
+        <p class='reference-deep-dive__lead'>{deepDive.mentalModel}</p>
+
+        <div class='reference-invariant'>
+          <h3>Инвариант</h3>
+          <p>{deepDive.invariant}</p>
+        </div>
+
+        <h3>Как работает</h3>
+        <ol>{deepDive.mechanics.map((step) => <li>{step}</li>)}</ol>
+
+        <h3>Когда выбирать</h3>
+        <ul>{deepDive.chooseWhen.map((note) => <li>{note}</li>)}</ul>
+
+        {deepDive.codeExamples && deepDive.codeExamples.length > 0 && (
+          <div class='reference-implementations'>
+            <h3>Референсная реализация</h3>
+            <p>Обе версии выражают один контракт и запускаются в автоматической проверке проекта.</p>
+            <div class='reference-code-pair lesson-body'>
+              {deepDive.codeExamples.map((example) => (
+                <div class='reference-code-example' data-code-language={example.language}>
+                  <h4>{example.label}</h4>
+                  <Code code={example.code} lang={example.language} data-language={example.language} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+    ))}
+
     <section aria-labelledby='reference-decisions-title'>
       <h2 id='reference-decisions-title'>
         {entry.source === 'core' ? 'Что держать в голове' : 'Как выбрать подход'}
@@ -55,6 +103,17 @@ const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)
       <h2>Искать также</h2>
       <p>{entry.aliases.join(' · ')}</p>
     </section>
+
+    {entry.deepDives && entry.deepDives.length > 0 && (
+      <section class='reference-topic-sidebar-toc'>
+        <h2>На этой странице</h2>
+        <ul>
+          {entry.deepDives.map((deepDive) => (
+            <li><a href={`#${deepDive.id}`}>{deepDive.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {courseLessons.length > 0 && (
       <section>

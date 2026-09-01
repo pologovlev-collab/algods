@@ -1,6 +1,7 @@
 import { coreReferenceTopics } from '../data/core-reference-topics';
 import { patterns } from '../data/patterns';
 import { referenceTopics } from '../data/reference-topics';
+import type { ReferenceDeepDive } from '../data/reference-topics';
 
 export type ReferenceCategoryId = 'core-patterns' | 'data-structures' | 'advanced';
 
@@ -54,6 +55,7 @@ export interface ReferenceEntry {
   prerequisiteLessonIds: string[];
   courseLessonIds: string[];
   patternId?: string;
+  deepDives?: ReferenceDeepDive[];
 }
 
 export interface ReferenceGroup {
@@ -109,6 +111,16 @@ export function buildReferenceEntries(sourceLessons: readonly ReferenceLesson[])
     pitfalls: [...topic.pitfalls],
     prerequisiteLessonIds: [...topic.prerequisites],
     courseLessonIds: [],
+    ...(topic.deepDives ? {
+      deepDives: topic.deepDives.map((deepDive) => ({
+        ...deepDive,
+        mechanics: [...deepDive.mechanics],
+        chooseWhen: [...deepDive.chooseWhen],
+        ...(deepDive.codeExamples ? {
+          codeExamples: deepDive.codeExamples.map((example) => ({ ...example })),
+        } : {}),
+      })),
+    } : {}),
   }));
 
   return [...coreEntries, ...advancedEntries];

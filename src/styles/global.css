@@ -2615,6 +2615,21 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   font-size: clamp(1.35rem, 3vw, 1.85rem);
 }
 
+.reference-topic-content h3 {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 1rem;
+}
+
+.reference-topic-content p,
+.reference-topic-content ol {
+  color: var(--ink-soft);
+}
+
+.reference-topic-content ol {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
 .reference-topic-content ul {
   margin: 0;
   padding-left: 1.2rem;
@@ -2623,6 +2638,51 @@ html[data-code-language='python'] [data-code-language='cpp'] {
 .reference-topic-content li {
   margin-block: 0.65rem;
   color: var(--ink-soft);
+}
+
+.reference-deep-dive {
+  scroll-margin-top: 6rem;
+}
+
+.reference-topic-mobile-toc {
+  display: none;
+}
+
+.reference-deep-dive__lead {
+  max-width: 68ch;
+  font-size: 1.04rem;
+}
+
+.reference-invariant {
+  margin-block: 1.5rem;
+  padding: 1rem 1.15rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-subtle);
+}
+
+.reference-invariant h3 {
+  margin-top: 0;
+}
+
+.reference-invariant p {
+  margin-bottom: 0;
+}
+
+.reference-implementations {
+  margin-top: 2rem;
+}
+
+.reference-implementations > p {
+  max-width: 65ch;
+}
+
+.reference-code-example h4 {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.88rem;
+}
+
+.reference-code-pair .code-frame {
+  margin-bottom: 0;
 }
 
 .reference-callout {
@@ -2735,6 +2795,30 @@ html[data-code-language='python'] [data-code-language='cpp'] {
     padding: 1rem 0 0;
     border-top: 1px solid var(--line);
     border-left: 0;
+  }
+
+  .reference-topic-mobile-toc {
+    display: block;
+    margin-block: 1rem 0;
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--line);
+  }
+
+  .reference-topic-mobile-toc h2 {
+    margin-bottom: 0.75rem;
+  }
+
+  .reference-topic-mobile-toc ol {
+    margin: 0;
+    padding-left: 1.35rem;
+  }
+
+  .reference-topic-mobile-toc li + li {
+    margin-top: 0.55rem;
+  }
+
+  .reference-topic-sidebar-toc {
+    display: none;
   }
 }
 
@@ -2952,6 +3036,10 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   .page-intro h1,
   .lesson-title h1 {
     font-size: clamp(2.25rem, 12vw, 3.3rem);
+  }
+
+  .reference-topic-header h1 {
+    font-size: clamp(2rem, 9vw, 2.65rem);
   }
 
   .course-stage > header {
