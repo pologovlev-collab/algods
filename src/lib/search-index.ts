@@ -1,7 +1,7 @@
-import type { LeetCode75Problem } from '../data/leetcode75';
+import { PRACTICE_PROVIDER_LABELS } from '../data/practice';
 import { patterns } from '../data/patterns';
 import type { CourseStage } from '../data/stages';
-import type { SupplementaryProblem } from '../data/supplementary-practice';
+import type { PracticeTask } from './practice';
 import type { ReferenceEntry, ReferenceLesson } from './reference';
 import type { SearchEntry, SearchEntryType } from './search';
 
@@ -13,8 +13,7 @@ export interface SearchIndexSources {
   lessons: readonly SearchLesson[];
   stages: readonly CourseStage[];
   references: readonly ReferenceEntry[];
-  leetcodeProblems: readonly LeetCode75Problem[];
-  supplementaryProblems: readonly SupplementaryProblem[];
+  practiceTasks: readonly PracticeTask[];
 }
 
 interface SearchEntryDraft {
@@ -83,8 +82,7 @@ export function buildSearchIndex({
   lessons,
   stages,
   references,
-  leetcodeProblems,
-  supplementaryProblems,
+  practiceTasks,
 }: SearchIndexSources): SearchEntry[] {
   const drafts: SearchEntryDraft[] = [...sectionEntries];
   const stageById = new Map(stages.map((stage) => [stage.id, stage]));
@@ -146,38 +144,25 @@ export function buildSearchIndex({
     context: `Справочник · ${entry.definition}`,
   }));
 
-  leetcodeProblems.forEach((problem) => drafts.push({
-    id: `practice:leetcode:${problem.id}`,
+  practiceTasks.forEach((task) => drafts.push({
+    id: `practice:${task.id}`,
     type: 'practice',
-    href: problem.url,
-    title: problem.title,
+    href: task.url,
+    title: task.title,
     aliases: uniqueText([
-      problem.slug.replaceAll('-', ' '),
-      problem.provider,
-      problem.officialGroup,
-      problem.primaryPattern,
-      ...problem.secondaryPatterns,
+      task.providerSlug.replaceAll('-', ' '),
+      PRACTICE_PROVIDER_LABELS[task.provider],
+      task.providerTaskId,
+      ...task.topics,
+      ...task.collections.map(({ group }) => group),
     ]),
     topics: uniqueText([
-      problem.learningNoteRu,
-      `этап ${problem.recommendedStage}`,
-      problem.practiceMode,
+      task.noteRu,
+      `этап ${task.stage}`,
+      task.mode,
+      task.tier,
     ]),
-    context: `Практика · LeetCode · ${problem.difficulty} · ${problem.primaryPattern}`,
-  }));
-
-  supplementaryProblems.forEach((problem) => drafts.push({
-    id: `practice:coderun:${problem.id}`,
-    type: 'practice',
-    href: problem.url,
-    title: problem.title,
-    aliases: uniqueText([problem.provider, problem.primaryPattern, `CodeRun ${problem.id}`]),
-    topics: uniqueText([
-      problem.learningNoteRu,
-      `этап ${problem.recommendedStage}`,
-      problem.practiceMode,
-    ]),
-    context: `Практика · CodeRun · ${problem.difficulty} · ${problem.primaryPattern}`,
+    context: `Практика · ${PRACTICE_PROVIDER_LABELS[task.provider]} · ${task.nativeLevel?.label ?? 'уровень AlgoDS'} · ${task.topics[0]}`,
   }));
 
   return drafts.map((entry, sourceOrder) => ({ ...entry, sourceOrder }));

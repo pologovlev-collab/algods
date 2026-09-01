@@ -1,9 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { APIRoute } from 'astro';
 
-import { leetcode75Problems } from '../data/leetcode75';
+import { practiceTasks } from '../data/practice';
 import { stages } from '../data/stages';
-import { supplementaryProblems } from '../data/supplementary-practice';
 import { sortLessons } from '../lib/content';
 import { buildReferenceEntries } from '../lib/reference';
 import { buildSearchIndex } from '../lib/search-index';
@@ -15,8 +14,7 @@ export const GET: APIRoute = async () => {
     lessons,
     stages,
     references,
-    leetcodeProblems: leetcode75Problems,
-    supplementaryProblems,
+    practiceTasks,
   });
 
   return new Response(JSON.stringify(entries), {

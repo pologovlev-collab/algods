@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { leetcode75Problems } from '../src/data/leetcode75';
+import { practiceTasks } from '../src/data/practice';
 import { stages } from '../src/data/stages';
-import { supplementaryProblems } from '../src/data/supplementary-practice';
 import { readLessonDocuments } from '../src/lib/content';
 import { buildReferenceEntries } from '../src/lib/reference';
 import { buildSearchIndex } from '../src/lib/search-index';
@@ -85,8 +84,7 @@ describe('global search index', () => {
       lessons,
       stages,
       references,
-      leetcodeProblems: leetcode75Problems,
-      supplementaryProblems,
+      practiceTasks,
     });
 
     expect(entries).toHaveLength(193);

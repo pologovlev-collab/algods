@@ -14,10 +14,33 @@ import {
   summarizeProgress,
   toggleBookmark,
 } from '../src/lib/progress';
+import { LEGACY_PRACTICE_PROGRESS_IDS } from './fixtures/practice-compatibility';
 
 const now = '2026-08-20T10:00:00.000Z';
 
 describe('progress schema', () => {
+  it('accepts every legacy practice ID in an existing v2 save', () => {
+    const updatedAt = '2026-08-20T10:00:00.000Z';
+    const problems = Object.fromEntries(LEGACY_PRACTICE_PROGRESS_IDS.map((id) => [
+      id,
+      { status: 'solved-independent', updatedAt },
+    ]));
+
+    const result = importProgress(JSON.stringify({
+      version: 2,
+      language: 'cpp',
+      theme: 'system',
+      lessons: {},
+      problems,
+      bookmarks: [],
+      revisit: [],
+      activity: {},
+    }));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(Object.keys(result.value.problems)).toEqual(LEGACY_PRACTICE_PROGRESS_IDS);
+  });
+
   it('starts with private, empty learning state and explicit preferences', () => {
     expect(createDefaultProgress()).toEqual({
       version: CURRENT_PROGRESS_VERSION,
@@ -42,6 +65,7 @@ describe('progress schema', () => {
           problemStatuses: {
             'leetcode:1768': 'solved-with-help',
             'leetcode:283': 'revisit',
+            'coderun:20': 'solved-independent',
           },
           bookmarks: ['lesson:s00-l01'],
         },
@@ -57,6 +81,7 @@ describe('progress schema', () => {
       problems: {
         'leetcode:1768': { status: 'solved-with-help', updatedAt: now },
         'leetcode:283': { status: 'revisit', updatedAt: now },
+        'coderun:20': { status: 'solved-independent', updatedAt: now },
       },
       bookmarks: ['lesson:s00-l01'],
       revisit: ['leetcode:283'],

@@ -12,6 +12,7 @@ import {
   type ProblemStatus,
   type ProgressState,
 } from '../lib/progress';
+import { normalizePracticeText } from '../lib/practice';
 import {
   importAndSaveProgress,
   loadProgress,
@@ -351,23 +352,32 @@ const prepareCodeBlocks = () => {
 
 const applyPracticeFilters = () => {
   document.querySelectorAll<HTMLElement>('[data-practice-explorer]').forEach((explorer) => {
-    const query =
-      explorer.querySelector<HTMLInputElement>('[data-filter-query]')?.value.trim().toLocaleLowerCase('ru') ?? '';
+    const query = normalizePracticeText(
+      explorer.querySelector<HTMLInputElement>('[data-filter-query]')?.value ?? '',
+    );
     const stage = explorer.querySelector<HTMLSelectElement>('[data-filter-stage]')?.value ?? 'all';
     const mode = explorer.querySelector<HTMLSelectElement>('[data-filter-mode]')?.value ?? 'all';
     const provider = explorer.querySelector<HTMLSelectElement>('[data-filter-provider]')?.value ?? 'all';
+    const topic = explorer.querySelector<HTMLSelectElement>('[data-filter-topic]')?.value ?? 'all';
+    const readiness = explorer.querySelector<HTMLSelectElement>('[data-filter-readiness]')?.value ?? 'all';
+    const tier = explorer.querySelector<HTMLSelectElement>('[data-filter-tier]')?.value ?? 'all';
     const status = explorer.querySelector<HTMLSelectElement>('[data-filter-status]')?.value ?? 'all';
+    const revisit = explorer.querySelector<HTMLSelectElement>('[data-filter-revisit]')?.value ?? 'all';
     let visible = 0;
 
     explorer.querySelectorAll<HTMLElement>('[data-practice-row]').forEach((row) => {
       const problemId = row.dataset.problemId ?? '';
       const problemStatus = state.problems[problemId]?.status ?? 'not-started';
       const matches =
-        (!query || (row.dataset.searchText ?? '').includes(query)) &&
+        (!query || normalizePracticeText(row.dataset.searchText ?? '').includes(query)) &&
         (stage === 'all' || row.dataset.stage === stage) &&
         (provider === 'all' || row.dataset.provider === provider) &&
+        (topic === 'all' || (row.dataset.topics ?? '').split('|').includes(topic)) &&
+        (readiness === 'all' || row.dataset.problemReadiness === readiness) &&
+        (tier === 'all' || row.dataset.tier === tier) &&
         (mode === 'all' || row.dataset.mode === mode) &&
-        (status === 'all' || problemStatus === status);
+        (status === 'all' || problemStatus === status) &&
+        (revisit === 'all' || problemStatus === 'revisit');
       row.hidden = !matches;
       if (matches) visible += 1;
     });
