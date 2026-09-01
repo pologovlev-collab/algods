@@ -87,13 +87,13 @@ describe('global search index', () => {
       practiceTasks,
     });
 
-    expect(entries).toHaveLength(224);
+    expect(entries).toHaveLength(258);
     expect(new Set(entries.map(({ id }) => id)).size).toBe(entries.length);
     expect(entries.filter(({ type }) => type === 'section')).toHaveLength(5);
     expect(entries.filter(({ type }) => type === 'stage')).toHaveLength(21);
     expect(entries.filter(({ type }) => type === 'lesson')).toHaveLength(54);
     expect(entries.filter(({ type }) => type === 'reference')).toHaveLength(32);
-    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(112);
+    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(146);
 
     entries.forEach((entry, index) => {
       expect(entry.sourceOrder).toBe(index);
@@ -117,6 +117,12 @@ describe('global search index', () => {
       type: 'practice',
     });
     expect(rankSearchEntries(entries, 'CodeRun').some(({ id }) => id.startsWith('practice:coderun:')))
+      .toBe(true);
+    expect(rankSearchEntries(entries, 'Valid Braces')[0]).toMatchObject({
+      id: 'practice:codewars:5277c8a221e209d3f6000b56',
+      type: 'practice',
+    });
+    expect(rankSearchEntries(entries, 'Codewars').some(({ id }) => id.startsWith('practice:codewars:')))
       .toBe(true);
   });
 });

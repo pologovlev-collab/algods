@@ -1,4 +1,5 @@
 import { coderunProblems } from './coderun';
+import { codewarsKata } from './codewars';
 import { leetcode75Problems } from './leetcode75';
 import {
   assertValidPracticeTasks,
@@ -117,6 +118,24 @@ const coderunTasks: PracticeTask[] = coderunProblems.map((problem) => ({
   verification: { verifiedAt: problem.verifiedAt, source: 'official-provider' },
 }));
 
-export const practiceTasks: PracticeTask[] = [...leetcodeTasks, ...coderunTasks];
+const codewarsTasks: PracticeTask[] = codewarsKata.map((kata) => ({
+  id: `codewars:${kata.id}`,
+  provider: 'codewars',
+  providerTaskId: kata.id,
+  providerSlug: kata.slug,
+  title: kata.title,
+  url: kata.url,
+  nativeLevel: { system: 'rank', label: kata.rank },
+  tier: kata.tier,
+  stage: kata.recommendedStage,
+  prerequisiteLessonIds: [...kata.prerequisiteLessonIds],
+  topics: [...kata.topics],
+  mode: kata.practiceMode,
+  collections: [],
+  noteRu: kata.learningNoteRu,
+  verification: { verifiedAt: kata.verifiedAt, source: 'official-provider' },
+}));
+
+export const practiceTasks: PracticeTask[] = [...leetcodeTasks, ...coderunTasks, ...codewarsTasks];
 
 assertValidPracticeTasks(practiceTasks);

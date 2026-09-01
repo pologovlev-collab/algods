@@ -19,11 +19,12 @@ import {
 
 describe('normalized practice domain', () => {
   it('keeps one unique canonical entity per provider task with stable progress IDs', () => {
-    expect(practiceTasks).toHaveLength(112);
+    expect(practiceTasks).toHaveLength(146);
     expect(() => assertValidPracticeTasks(practiceTasks)).not.toThrow();
-    expect(new Set(practiceTasks.map(({ id }) => id)).size).toBe(112);
+    expect(new Set(practiceTasks.map(({ id }) => id)).size).toBe(146);
     expect(practiceTasks.filter(({ provider }) => provider === 'leetcode')).toHaveLength(75);
     expect(practiceTasks.filter(({ provider }) => provider === 'coderun')).toHaveLength(37);
+    expect(practiceTasks.filter(({ provider }) => provider === 'codewars')).toHaveLength(34);
     expect(practiceTasks.every(({ url }) => url.startsWith('https://'))).toBe(true);
     expect(practiceTasks.every(({ verification }) => verification.source === 'official-provider')).toBe(true);
   });
