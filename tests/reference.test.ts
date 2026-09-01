@@ -27,11 +27,29 @@ describe('course reference', () => {
       'data-structures',
       'advanced',
     ]);
-    expect(entries).toHaveLength(32);
-    expect(entries.filter(({ source }) => source === 'core')).toHaveLength(24);
+    expect(entries).toHaveLength(33);
+    expect(entries.filter(({ source }) => source === 'core')).toHaveLength(25);
     expect(entries.filter(({ source }) => source === 'advanced')).toHaveLength(referenceTopics.length);
     expect(entries.map(({ href }) => href)).toContain('/reference/binary-search/');
+    expect(entries.map(({ href }) => href)).toContain('/reference/dynamic-array/');
     expect(entries.map(({ href }) => href)).toContain('/reference/advanced-graph-algorithms/');
+  });
+
+  it('makes dynamic arrays discoverable without confusing Python list with a linked list', async () => {
+    const lessons = (await readLessonDocuments(lessonDirectory)).map(({ data }) => data);
+    const dynamicArray = buildReferenceEntries(lessons).find(({ slug }) => slug === 'dynamic-array');
+
+    expect(dynamicArray).toMatchObject({
+      title: 'Динамический массив',
+      courseLessonIds: ['s01-l01'],
+    });
+    expect(dynamicArray?.aliases).toEqual(expect.arrayContaining([
+      'dynamic array',
+      'std::vector',
+      'python list',
+      'динамический массив',
+    ]));
+    expect(dynamicArray?.pitfalls.join(' ')).toMatch(/Python list.*не связн/i);
   });
 
   it('keeps slugs, aliases, prerequisites, and course cross-links valid', async () => {

@@ -7,6 +7,7 @@ export interface PatternDefinition {
 export const patterns: PatternDefinition[] = [
   { id: 'problem-solving', title: 'Разбор задачи', signal: 'Нужно связать ограничения, перебор и проверяемую идею.' },
   { id: 'language-toolkit', title: 'Инструменты языка', signal: 'Выбор контейнера или API влияет на сложность и ясность.' },
+  { id: 'dynamic-array', title: 'Динамический массив', signal: 'Нужны плотное хранение, быстрый доступ по индексу и рост в конце.' },
   { id: 'linear-scan', title: 'Линейный обход', signal: 'Ответ можно накопить за один проход.' },
   { id: 'hashing', title: 'Хеширование', signal: 'Повторяется проверка наличия, частоты или соответствия.' },
   { id: 'two-pointers', title: 'Два указателя', signal: 'Можно безопасно сдвигать одну из границ состояния.' },
