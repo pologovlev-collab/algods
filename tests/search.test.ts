@@ -87,13 +87,13 @@ describe('global search index', () => {
       practiceTasks,
     });
 
-    expect(entries).toHaveLength(193);
+    expect(entries).toHaveLength(224);
     expect(new Set(entries.map(({ id }) => id)).size).toBe(entries.length);
     expect(entries.filter(({ type }) => type === 'section')).toHaveLength(5);
     expect(entries.filter(({ type }) => type === 'stage')).toHaveLength(21);
     expect(entries.filter(({ type }) => type === 'lesson')).toHaveLength(54);
     expect(entries.filter(({ type }) => type === 'reference')).toHaveLength(32);
-    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(81);
+    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(112);
 
     entries.forEach((entry, index) => {
       expect(entry.sourceOrder).toBe(index);
@@ -112,5 +112,11 @@ describe('global search index', () => {
       id: 'practice:leetcode:1768',
       type: 'practice',
     });
+    expect(rankSearchEntries(entries, 'Радио Байтик')[0]).toMatchObject({
+      id: 'practice:coderun:40',
+      type: 'practice',
+    });
+    expect(rankSearchEntries(entries, 'CodeRun').some(({ id }) => id.startsWith('practice:coderun:')))
+      .toBe(true);
   });
 });

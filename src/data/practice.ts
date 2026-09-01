@@ -1,5 +1,5 @@
+import { coderunProblems } from './coderun';
 import { leetcode75Problems } from './leetcode75';
-import { supplementaryProblems } from './supplementary-practice';
 import {
   assertValidPracticeTasks,
   type PracticeMode,
@@ -35,7 +35,7 @@ const taskIdsByTier: Record<PracticeTier, string[]> = {
     'leetcode:724', 'leetcode:2215', 'leetcode:1207', 'leetcode:933',
     'leetcode:206', 'leetcode:104', 'leetcode:872', 'leetcode:700',
     'leetcode:374', 'leetcode:1137', 'leetcode:746', 'leetcode:338',
-    'leetcode:136', 'coderun:1',
+    'leetcode:136',
   ],
   standard: [
     'leetcode:605', 'leetcode:151', 'leetcode:238', 'leetcode:443',
@@ -48,14 +48,12 @@ const taskIdsByTier: Record<PracticeTier, string[]> = {
     'leetcode:215', 'leetcode:2336', 'leetcode:2300', 'leetcode:162',
     'leetcode:17', 'leetcode:62', 'leetcode:198', 'leetcode:714',
     'leetcode:1318', 'leetcode:208', 'leetcode:435', 'leetcode:452',
-    'leetcode:739', 'leetcode:901', 'coderun:20', 'coderun:8',
-    'coderun:12',
+    'leetcode:739', 'leetcode:901',
   ],
   stretch: [
     'leetcode:334', 'leetcode:394', 'leetcode:236', 'leetcode:399',
     'leetcode:2542', 'leetcode:2462', 'leetcode:875', 'leetcode:216',
     'leetcode:790', 'leetcode:1143', 'leetcode:72', 'leetcode:1268',
-    'coderun:10', 'coderun:6',
   ],
 };
 
@@ -97,18 +95,22 @@ const leetcodeTasks: PracticeTask[] = leetcode75Problems.map((problem) => ({
   verification: { verifiedAt: problem.verifiedAt, source: 'official-provider' },
 }));
 
-const coderunTasks: PracticeTask[] = supplementaryProblems.map((problem) => ({
+if (tierByTaskId.size !== leetcodeTasks.length) {
+  throw new Error('explicit AlgoDS tiers do not match the LeetCode catalogue');
+}
+
+const coderunTasks: PracticeTask[] = coderunProblems.map((problem) => ({
   id: `coderun:${problem.id}`,
   provider: 'coderun',
-  providerTaskId: String(problem.id),
-  providerSlug: new URL(problem.url).pathname.split('/').filter(Boolean).at(-1) ?? String(problem.id),
+  providerTaskId: problem.id,
+  providerSlug: problem.slug,
   title: problem.title,
   url: problem.url,
   nativeLevel: { system: 'difficulty', label: problem.difficulty },
-  tier: getTaskTier(`coderun:${problem.id}`),
+  tier: problem.tier,
   stage: problem.recommendedStage,
   prerequisiteLessonIds: [...problem.prerequisiteLessonIds],
-  topics: [problem.primaryPattern],
+  topics: [...problem.topics],
   mode: problem.practiceMode,
   collections: [],
   noteRu: problem.learningNoteRu,
@@ -116,9 +118,5 @@ const coderunTasks: PracticeTask[] = supplementaryProblems.map((problem) => ({
 }));
 
 export const practiceTasks: PracticeTask[] = [...leetcodeTasks, ...coderunTasks];
-
-if (tierByTaskId.size !== practiceTasks.length) {
-  throw new Error('explicit AlgoDS tiers do not match the normalized practice catalogue');
-}
 
 assertValidPracticeTasks(practiceTasks);

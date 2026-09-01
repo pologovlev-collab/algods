@@ -213,19 +213,19 @@ describe('progress portability', () => {
     });
   });
 
-  it('persists supplementary practice without inflating the LeetCode 75 gauge', () => {
-    const supplementary = recordProblemStatus(
+  it('persists CodeRun practice without inflating the LeetCode 75 gauge', () => {
+    const coderun = recordProblemStatus(
       createDefaultProgress(),
       'coderun:20',
       'solved-independent',
       now,
     );
 
-    expect(importProgress(exportProgress(supplementary), now)).toEqual({
+    expect(importProgress(exportProgress(coderun), now)).toEqual({
       ok: true,
-      value: supplementary,
+      value: coderun,
     });
-    expect(summarizeProgress(supplementary, 54, 75)).toMatchObject({
+    expect(summarizeProgress(coderun, 54, 75)).toMatchObject({
       solvedProblems: 0,
       independentProblems: 0,
       assistedProblems: 0,

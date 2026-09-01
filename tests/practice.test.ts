@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { practiceTasks } from '../src/data/practice';
 import {
+  CODERUN_PROGRESS_IDS,
   LEETCODE_75_PROGRESS_IDS,
-  SUPPLEMENTARY_PROGRESS_IDS,
 } from '../src/data/progress-ids';
 import {
   assertValidPracticeTasks,
@@ -19,11 +19,11 @@ import {
 
 describe('normalized practice domain', () => {
   it('keeps one unique canonical entity per provider task with stable progress IDs', () => {
-    expect(practiceTasks).toHaveLength(81);
+    expect(practiceTasks).toHaveLength(112);
     expect(() => assertValidPracticeTasks(practiceTasks)).not.toThrow();
-    expect(new Set(practiceTasks.map(({ id }) => id)).size).toBe(81);
+    expect(new Set(practiceTasks.map(({ id }) => id)).size).toBe(112);
     expect(practiceTasks.filter(({ provider }) => provider === 'leetcode')).toHaveLength(75);
-    expect(practiceTasks.filter(({ provider }) => provider === 'coderun')).toHaveLength(6);
+    expect(practiceTasks.filter(({ provider }) => provider === 'coderun')).toHaveLength(37);
     expect(practiceTasks.every(({ url }) => url.startsWith('https://'))).toBe(true);
     expect(practiceTasks.every(({ verification }) => verification.source === 'official-provider')).toBe(true);
   });
@@ -41,7 +41,8 @@ describe('normalized practice domain', () => {
 
   it('preserves the complete legacy progress IDs and curated order independently', () => {
     expect(LEETCODE_75_PROGRESS_IDS).toEqual(LEGACY_LEETCODE_75_PROGRESS_IDS);
-    expect(SUPPLEMENTARY_PROGRESS_IDS).toEqual(LEGACY_CODERUN_PROGRESS_IDS);
+    expect(LEGACY_CODERUN_PROGRESS_IDS.every((id) => CODERUN_PROGRESS_IDS.includes(id)))
+      .toBe(true);
     expect(getPracticeCollection(practiceTasks, 'leetcode75').map(({ id }) => id))
       .toEqual(LEGACY_LEETCODE_75_PROGRESS_IDS);
   });
@@ -50,7 +51,8 @@ describe('normalized practice domain', () => {
     const byId = new Map(practiceTasks.map((task) => [task.id, task]));
 
     expect(byId.get('leetcode:1071')).toMatchObject({ tier: 'warm-up', mode: 'transfer' });
-    expect(byId.get('coderun:1')).toMatchObject({ tier: 'warm-up', mode: 'independent' });
+    expect(byId.get('coderun:1')).toMatchObject({ tier: 'warm-up', mode: 'guided' });
+    expect(byId.get('coderun:15')).toMatchObject({ tier: 'stretch', mode: 'independent' });
     expect(byId.get('leetcode:1143')).toMatchObject({ tier: 'stretch', mode: 'guided' });
     expect(byId.get('leetcode:72')).toMatchObject({ tier: 'stretch', mode: 'independent' });
   });
@@ -59,6 +61,7 @@ describe('normalized practice domain', () => {
     const completedLessonIds = new Set(['s13-l02']);
     const ready = filterPracticeTasks(practiceTasks, {
       provider: 'coderun',
+      topic: 'Компоненты связности',
       stage: 13,
       readiness: 'ready',
       tier: 'standard',
@@ -80,7 +83,7 @@ describe('normalized practice domain', () => {
 
   it('filters by normalized topic and rejects duplicate IDs', () => {
     expect(normalizePracticeText('Ещё один раз')).toBe('еще один раз');
-    expect(filterPracticeTasks(practiceTasks, { topic: 'Обход графа' }, {
+    expect(filterPracticeTasks(practiceTasks, { topic: 'Компоненты связности' }, {
       completedLessonIds: new Set(),
       statuses: {},
     }).map(({ id }) => id)).toContain('coderun:8');

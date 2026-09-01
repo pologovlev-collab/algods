@@ -18,7 +18,7 @@ export const CORE_LESSON_IDS = [
 export const LEETCODE_75_PROGRESS_IDS = getPracticeCollection(practiceTasks, 'leetcode75')
   .map(({ id }) => id);
 
-export const SUPPLEMENTARY_PROGRESS_IDS = practiceTasks
+export const CODERUN_PROGRESS_IDS = practiceTasks
   .filter(({ provider }) => provider === 'coderun')
   .map(({ id }) => id);
 
@@ -26,8 +26,8 @@ export const CORE_LESSON_ID_SET: ReadonlySet<string> = new Set(CORE_LESSON_IDS);
 export const LEETCODE_75_PROGRESS_ID_SET: ReadonlySet<string> = new Set(
   LEETCODE_75_PROGRESS_IDS,
 );
-export const SUPPLEMENTARY_PROGRESS_ID_SET: ReadonlySet<string> = new Set(
-  SUPPLEMENTARY_PROGRESS_IDS,
+export const CODERUN_PROGRESS_ID_SET: ReadonlySet<string> = new Set(
+  CODERUN_PROGRESS_IDS,
 );
 export const KNOWN_PROBLEM_ID_SET: ReadonlySet<string> = new Set(
   practiceTasks.map(({ id }) => id),
