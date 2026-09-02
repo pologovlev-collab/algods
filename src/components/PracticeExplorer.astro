@@ -6,7 +6,7 @@ import {
   PRACTICE_PROVIDER_LABELS,
   PRACTICE_TIER_LABELS,
 } from '../data/practice';
-import type { PracticeTask } from '../lib/practice';
+import { orderPracticeTasks, type PracticeTask } from '../lib/practice';
 import ProblemStatus from './ProblemStatus.astro';
 
 interface Props {
@@ -15,12 +15,7 @@ interface Props {
 
 const { tasks } = Astro.props;
 const lessonById = new Map((await getCollection('lessons')).map(({ data }) => [data.id, data]));
-const tierRank = { 'warm-up': 0, standard: 1, stretch: 2 } as const;
-const orderedTasks = [...tasks].sort((left, right) =>
-  left.stage - right.stage
-  || tierRank[left.tier] - tierRank[right.tier]
-  || left.provider.localeCompare(right.provider)
-  || left.id.localeCompare(right.id));
+const orderedTasks = orderPracticeTasks(tasks);
 const providers = [...new Set(tasks.map(({ provider }) => provider))];
 const topics = [...new Set(tasks.flatMap(({ topics }) => topics))].sort((left, right) =>
   left.localeCompare(right, 'ru'));

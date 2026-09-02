@@ -58,8 +58,29 @@ export interface PracticeFilterContext {
   statuses: Readonly<Record<string, SavedPracticeStatus | undefined>>;
 }
 
+const practiceTierRank: Record<PracticeTier, number> = {
+  'warm-up': 0,
+  standard: 1,
+  stretch: 2,
+};
+
+const practiceModeRank: Record<PracticeMode, number> = {
+  guided: 0,
+  transfer: 1,
+  independent: 2,
+};
+
 export const normalizePracticeText = (value: string): string =>
   value.toLocaleLowerCase('ru').replaceAll('ё', 'е').trim();
+
+export function orderPracticeTasks(tasks: readonly PracticeTask[]): PracticeTask[] {
+  return [...tasks].sort((left, right) =>
+    left.stage - right.stage
+    || practiceTierRank[left.tier] - practiceTierRank[right.tier]
+    || practiceModeRank[left.mode] - practiceModeRank[right.mode]
+    || left.provider.localeCompare(right.provider)
+    || left.id.localeCompare(right.id));
+}
 
 export function getPracticeReadiness(
   task: PracticeTask,

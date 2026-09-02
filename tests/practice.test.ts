@@ -11,6 +11,7 @@ import {
   getPracticeCollection,
   groupLeetCode75Tasks,
   normalizePracticeText,
+  orderPracticeTasks,
 } from '../src/lib/practice';
 import {
   LEGACY_CODERUN_PROGRESS_IDS,
@@ -56,6 +57,36 @@ describe('normalized practice domain', () => {
     expect(byId.get('coderun:15')).toMatchObject({ tier: 'stretch', mode: 'independent' });
     expect(byId.get('leetcode:1143')).toMatchObject({ tier: 'stretch', mode: 'guided' });
     expect(byId.get('leetcode:72')).toMatchObject({ tier: 'stretch', mode: 'independent' });
+  });
+
+  it('orders each stage from warm-up to stretch and from guided to independent within a tier', () => {
+    const tierRank = { 'warm-up': 0, standard: 1, stretch: 2 } as const;
+    const modeRank = { guided: 0, transfer: 1, independent: 2 } as const;
+    const ordered = orderPracticeTasks(practiceTasks);
+
+    for (let index = 1; index < ordered.length; index += 1) {
+      const previous = ordered[index - 1]!;
+      const current = ordered[index]!;
+      expect(previous.stage).toBeLessThanOrEqual(current.stage);
+      if (previous.stage !== current.stage) continue;
+      expect(tierRank[previous.tier]).toBeLessThanOrEqual(tierRank[current.tier]);
+      if (previous.tier === current.tier) {
+        expect(modeRank[previous.mode]).toBeLessThanOrEqual(modeRank[current.mode]);
+      }
+    }
+  });
+
+  it('keeps every algorithm-teaching stage covered by scaffolded and less-scaffolded practice', () => {
+    for (let stage = 2; stage <= 18; stage += 1) {
+      const stageTasks = practiceTasks.filter((task) => task.stage === stage);
+      expect(stageTasks.length, `stage ${stage}`).toBeGreaterThanOrEqual(2);
+      expect(stageTasks.some(({ mode }) => mode === 'guided'), `stage ${stage} guided`).toBe(true);
+      expect(stageTasks.some(({ mode }) => mode !== 'guided'), `stage ${stage} transfer`).toBe(true);
+    }
+
+    expect(practiceTasks.every((task) => task.prerequisiteLessonIds.every((id) => (
+      Number(id.slice(1, 3)) <= task.stage
+    )))).toBe(true);
   });
 
   it('combines provider, stage, readiness, tier, mode, status, and revisit filters', () => {
