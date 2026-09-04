@@ -10,7 +10,7 @@ const { lessonIds, lessons } = Astro.props;
 const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
 ---
 
-<ol class="knowledge-map-lessons">
+<ol class="learning-landscape__lessons">
   {lessonIds.map((id) => {
     const lesson = lessonById.get(id);
     return lesson && (

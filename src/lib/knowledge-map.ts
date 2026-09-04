@@ -43,6 +43,23 @@ export interface KnowledgeMapModel {
   layers: number[][];
 }
 
+export interface KnowledgeMapGroupDefinition {
+  id: string;
+  title: string;
+  description: string;
+  stageIds: number[];
+}
+
+export interface KnowledgeMapGroup extends Omit<KnowledgeMapGroupDefinition, 'stageIds'> {
+  stages: KnowledgeMapStageNode[];
+}
+
+export interface KnowledgeMapStageDetail {
+  stage: KnowledgeMapStageNode;
+  prerequisiteStages: KnowledgeMapStageNode[];
+  unlockStages: KnowledgeMapStageNode[];
+}
+
 export type KnowledgeLessonState = 'blocked' | 'ready' | 'in-progress' | 'completed';
 export type KnowledgeStageState = KnowledgeLessonState;
 export type StoredLessonStatus = 'in-progress' | 'completed';
@@ -51,6 +68,7 @@ export interface KnowledgeMapState {
   lessonStates: Record<string, KnowledgeLessonState>;
   stageStates: Record<number, KnowledgeStageState>;
   nextLessonId: string | null;
+  nextStageId: number | null;
 }
 
 const orderLessons = <T extends KnowledgeMapLesson>(lessons: readonly T[]): T[] =>
@@ -213,6 +231,67 @@ export function buildKnowledgeMap(
   return { stages: nodes, edges, overviewEdges, focusByStageId, layers };
 }
 
+export function buildKnowledgeMapGroups(
+  map: KnowledgeMapModel,
+  definitions: readonly KnowledgeMapGroupDefinition[],
+): KnowledgeMapGroup[] {
+  const stageById = new Map(map.stages.map((stage) => [stage.id, stage]));
+  const groupIds = new Set<string>();
+  const groupedStageIds = new Set<number>();
+
+  const groups = definitions.map((definition) => {
+    if (groupIds.has(definition.id)) {
+      throw new Error(`Knowledge map has duplicate group ${definition.id}.`);
+    }
+    groupIds.add(definition.id);
+
+    const stages = definition.stageIds.map((stageId) => {
+      const stage = stageById.get(stageId);
+      if (!stage) throw new Error(`Knowledge-map group ${definition.id} references unknown stage ${stageId}.`);
+      if (groupedStageIds.has(stageId)) {
+        throw new Error(`Knowledge-map stage ${stageId} appears in more than one group.`);
+      }
+      groupedStageIds.add(stageId);
+      return stage;
+    });
+
+    return {
+      id: definition.id,
+      title: definition.title,
+      description: definition.description,
+      stages,
+    };
+  });
+
+  const missingStageIds = map.stages
+    .map(({ id }) => id)
+    .filter((id) => !groupedStageIds.has(id));
+  if (missingStageIds.length > 0) {
+    throw new Error(`Knowledge-map groups omit stages ${missingStageIds.join(', ')}.`);
+  }
+
+  return groups;
+}
+
+export function getKnowledgeMapStageDetail(
+  map: KnowledgeMapModel,
+  stageId: number,
+): KnowledgeMapStageDetail | null {
+  const stageById = new Map(map.stages.map((stage) => [stage.id, stage]));
+  const stage = stageById.get(stageId);
+  if (!stage) return null;
+
+  return {
+    stage,
+    prerequisiteStages: stage.prerequisiteStageIds
+      .map((id) => stageById.get(id))
+      .filter((candidate): candidate is KnowledgeMapStageNode => Boolean(candidate)),
+    unlockStages: stage.unlockStageIds
+      .map((id) => stageById.get(id))
+      .filter((candidate): candidate is KnowledgeMapStageNode => Boolean(candidate)),
+  };
+}
+
 export function deriveKnowledgeMapState(
   map: KnowledgeMapModel,
   sourceLessons: readonly KnowledgeMapLesson[],
@@ -242,5 +321,6 @@ export function deriveKnowledgeMapState(
     lessonStates,
     stageStates,
     nextLessonId: nextLesson?.id ?? null,
+    nextStageId: nextLesson?.stage ?? null,
   };
 }

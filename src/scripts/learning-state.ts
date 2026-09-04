@@ -185,7 +185,7 @@ const renderState = () => {
         Object.entries(state.lessons).map(([id, entry]) => [id, entry.status]),
       ) as Record<string, StoredLessonStatus>;
       const mapState = deriveKnowledgeMapState(payload.map, payload.lessons, statuses);
-      const nextStageId = payload.lessons.find(({ id }) => id === mapState.nextLessonId)?.stage;
+      const nextStageId = mapState.nextStageId;
 
       document.querySelectorAll<HTMLElement>('[data-map-stage-id]').forEach((element) => {
         const stageId = Number(element.dataset.mapStageId);
@@ -201,6 +201,15 @@ const renderState = () => {
                 ? 'Можно начать'
                 : 'Нужны зависимости';
         });
+      });
+      const completedStages = Object.values(mapState.stageStates)
+        .filter((stageState) => stageState === 'completed').length;
+      document.querySelectorAll<HTMLElement>('[data-map-progress-value]').forEach((element) => {
+        element.textContent = `${completedStages} / ${payload.map.stages.length}`;
+      });
+      const nextStageTitle = payload.map.stages.find(({ id }) => id === nextStageId)?.title ?? 'Курс завершён';
+      document.querySelectorAll<HTMLElement>('[data-map-next-stage-title]').forEach((element) => {
+        element.textContent = nextStageTitle;
       });
     } catch {
       // The map keeps its server-rendered fallback state if embedded data is malformed.

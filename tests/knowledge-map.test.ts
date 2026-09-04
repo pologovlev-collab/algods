@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { knowledgeMapGroups } from '../src/data/knowledge-map-groups';
 import {
   buildKnowledgeMap,
+  buildKnowledgeMapGroups,
   deriveKnowledgeMapState,
+  getKnowledgeMapStageDetail,
   type KnowledgeMapEdge,
   type KnowledgeMapLesson,
   type KnowledgeMapStage,
@@ -143,6 +146,28 @@ describe('knowledge-map graph', () => {
     expect(map.focusByStageId[13]?.unlockStageIds).toEqual([16]);
   });
 
+  it('groups every real course stage exactly once into unique learner-facing areas', async () => {
+    const documents = await readLessonDocuments(lessonDirectory);
+    const map = buildKnowledgeMap(courseStages, documents.map(({ data }) => data));
+    const groups = buildKnowledgeMapGroups(map, knowledgeMapGroups);
+    const groupedStageIds = groups.flatMap(({ stages }) => stages.map(({ id }) => id));
+
+    expect(groups).toHaveLength(7);
+    expect(new Set(groups.map(({ id }) => id)).size).toBe(groups.length);
+    expect(groupedStageIds).toEqual(map.stages.map(({ id }) => id));
+    expect(new Set(groupedStageIds).size).toBe(map.stages.length);
+  });
+
+  it('exposes exact prerequisite and unlock stages for the selected-stage detail', () => {
+    const map = buildKnowledgeMap(stages, lessons);
+    const detail = getKnowledgeMapStageDetail(map, 3);
+
+    expect(detail?.prerequisiteStages.map(({ id }) => id)).toEqual([1, 2]);
+    expect(detail?.unlockStages).toEqual([]);
+    expect(getKnowledgeMapStageDetail(map, 1)?.unlockStages.map(({ id }) => id)).toEqual([3]);
+    expect(getKnowledgeMapStageDetail(map, 99)).toBeNull();
+  });
+
   it('distinguishes blocked, ready, in-progress, and completed lesson and stage states', () => {
     const map = buildKnowledgeMap(stages, lessons);
     const active = deriveKnowledgeMapState(map, lessons, {
@@ -160,6 +185,7 @@ describe('knowledge-map graph', () => {
     });
     expect(active.stageStates).toEqual({ 0: 'in-progress', 1: 'blocked', 2: 'blocked', 3: 'blocked' });
     expect(active.nextLessonId).toBe('s00-l02');
+    expect(active.nextStageId).toBe(0);
 
     const foundationComplete = deriveKnowledgeMapState(map, lessons, {
       's00-l01': 'completed',
@@ -167,6 +193,7 @@ describe('knowledge-map graph', () => {
     });
     expect(foundationComplete.stageStates).toEqual({ 0: 'completed', 1: 'ready', 2: 'ready', 3: 'blocked' });
     expect(foundationComplete.nextLessonId).toBe('s01-l01');
+    expect(foundationComplete.nextStageId).toBe(1);
   });
 
   it('fails closed when a lesson references an unknown lesson or stage', () => {
