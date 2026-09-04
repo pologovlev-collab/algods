@@ -1,0 +1,218 @@
+---
+import { createTreeTraversalTrace, type TreeLabNode } from '../lib/labs/tree-traversal';
+import '../styles/algorithm-labs.css';
+
+const nodes: TreeLabNode[] = [
+  { id: 1, value: 1, left: 2, right: 3 },
+  { id: 2, value: 2, left: 4, right: 5 },
+  { id: 3, value: 3, left: null, right: 6 },
+  { id: 4, value: 4, left: null, right: null },
+  { id: 5, value: 5, left: null, right: null },
+  { id: 6, value: 6, left: null, right: null },
+];
+const traces = {
+  dfs: createTreeTraversalTrace(nodes, 1, 'dfs'),
+  bfs: createTreeTraversalTrace(nodes, 1, 'bfs'),
+};
+---
+
+<section
+  class="algorithm-lab"
+  data-tree-traversal-lab
+  data-traces={JSON.stringify(traces)}
+  aria-labelledby="tree-traversal-lab-title"
+>
+  <header class="algorithm-lab__header">
+    <p class="eyebrow">Интерактивная лаборатория</p>
+    <h2 id="tree-traversal-lab-title">Стек или очередь меняют порядок обхода</h2>
+    <p>Оба режима посещают те же вершины. Разница возникает только из дисциплины структуры, которая хранит ещё не обработанные узлы.</p>
+  </header>
+
+  <div class="tree-lab__modes" role="group" aria-label="Режим обхода">
+    <button type="button" data-tree-mode="dfs" aria-pressed="true">DFS · preorder</button>
+    <button type="button" data-tree-mode="bfs" aria-pressed="false">BFS · по уровням</button>
+  </div>
+
+  <div class="algorithm-lab__progress">
+    <span data-lab-step>Шаг 1</span>
+    <span data-tree-discipline>Стек: <strong>слева следующий</strong></span>
+  </div>
+
+  <figure class="tree-lab__diagram" aria-labelledby="tree-lab-caption">
+    <div class="tree-lab__level"><span class="tree-lab__node" data-tree-node="1">1</span></div>
+    <div class="tree-lab__level">
+      <span class="tree-lab__node" data-tree-node="2">2</span>
+      <span class="tree-lab__node" data-tree-node="3">3</span>
+    </div>
+    <div class="tree-lab__level">
+      <span class="tree-lab__node" data-tree-node="4">4</span>
+      <span class="tree-lab__node" data-tree-node="5">5</span>
+      <span class="tree-lab__node" data-tree-node="6">6</span>
+    </div>
+    <figcaption id="tree-lab-caption">Связи: 1 → 2, 3; 2 → 4, 5; 3 → 6. Цвет и подписи дублируются текстовым состоянием ниже.</figcaption>
+  </figure>
+
+  <dl class="algorithm-lab__state">
+    <div><dt>Текущий узел</dt><dd data-tree-current>1</dd></div>
+    <div><dt>Посещены</dt><dd data-tree-visited>1</dd></div>
+    <div><dt data-tree-frontier-label>Стек после шага</dt><dd data-tree-frontier>2, 3</dd></div>
+  </dl>
+
+  <div class="algorithm-lab__prediction" data-lab-prediction>
+    <fieldset>
+      <legend>Какой узел будет обработан следующим?</legend>
+      <div class="algorithm-lab__prediction-options" data-tree-options></div>
+    </fieldset>
+    <p class="algorithm-lab__feedback" data-lab-feedback aria-live="polite">Прочитайте структуру слева направо и выберите следующий узел.</p>
+  </div>
+
+  <p class="algorithm-lab__explanation" data-lab-explanation aria-live="polite">DFS берёт вершину с вершины стека. Левый ребёнок подготовлен как ближайший следующий.</p>
+
+  <div class="algorithm-lab__controls">
+    <button class="button button--secondary" type="button" data-lab-previous disabled>Предыдущий</button>
+    <button class="button button--primary" type="button" data-lab-next disabled>Следующий</button>
+    <button class="text-button" type="button" data-lab-reset>Сбросить</button>
+  </div>
+</section>
+
+<script>
+  import type { TreeTraversalMode, TreeTraversalTrace } from '../lib/labs/tree-traversal';
+
+  document.querySelectorAll<HTMLElement>('[data-tree-traversal-lab]').forEach((lab) => {
+    if (lab.dataset.labReady === 'true') return;
+    lab.dataset.labReady = 'true';
+    const traces = JSON.parse(lab.dataset.traces ?? '') as Record<TreeTraversalMode, TreeTraversalTrace>;
+    const modeButtons = [...lab.querySelectorAll<HTMLButtonElement>('[data-tree-mode]')];
+    const treeNodes = [...lab.querySelectorAll<HTMLElement>('[data-tree-node]')];
+    const options = lab.querySelector<HTMLElement>('[data-tree-options]');
+    const prediction = lab.querySelector<HTMLElement>('[data-lab-prediction]');
+    const feedback = lab.querySelector<HTMLElement>('[data-lab-feedback]');
+    const explanation = lab.querySelector<HTMLElement>('[data-lab-explanation]');
+    const previous = lab.querySelector<HTMLButtonElement>('[data-lab-previous]');
+    const next = lab.querySelector<HTMLButtonElement>('[data-lab-next]');
+    const stepLabel = lab.querySelector<HTMLElement>('[data-lab-step]');
+    const discipline = lab.querySelector<HTMLElement>('[data-tree-discipline]');
+    const currentOutput = lab.querySelector<HTMLElement>('[data-tree-current]');
+    const visitedOutput = lab.querySelector<HTMLElement>('[data-tree-visited]');
+    const frontierLabel = lab.querySelector<HTMLElement>('[data-tree-frontier-label]');
+    const frontierOutput = lab.querySelector<HTMLElement>('[data-tree-frontier]');
+    let mode: TreeTraversalMode = 'dfs';
+    let position = 0;
+    let revealed = false;
+
+    const resetFeedback = () => {
+      revealed = false;
+      if (feedback) {
+        feedback.textContent = 'Прочитайте структуру слева направо и выберите следующий узел.';
+        delete feedback.dataset.feedbackState;
+      }
+    };
+
+    const render = () => {
+      const trace = traces[mode];
+      const step = trace.steps[position];
+      const isResult = position >= trace.steps.length;
+      if (stepLabel) stepLabel.textContent = isResult
+        ? `Итог · ${trace.steps.length + 1} / ${trace.steps.length + 1}`
+        : `Шаг ${position + 1} / ${trace.steps.length + 1}`;
+      if (discipline) discipline.innerHTML = mode === 'dfs'
+        ? 'Стек: <strong>слева следующий</strong>'
+        : 'Очередь: <strong>слева следующий</strong>';
+      if (frontierLabel) frontierLabel.textContent = mode === 'dfs' ? 'Стек после шага' : 'Очередь после шага';
+
+      treeNodes.forEach((node) => {
+        const id = Number(node.dataset.treeNode);
+        if (isResult) {
+          node.dataset.treeState = 'visited';
+        } else if (step) {
+          node.dataset.treeState = id === step.current
+            ? 'current'
+            : step.visited.includes(id)
+              ? 'visited'
+              : step.frontierAfter.includes(id)
+                ? 'frontier'
+                : 'unseen';
+        }
+      });
+
+      if (isResult) {
+        if (currentOutput) currentOutput.textContent = 'обход завершён';
+        if (visitedOutput) visitedOutput.textContent = trace.order.join(' → ');
+        if (frontierOutput) frontierOutput.textContent = 'пусто';
+        if (prediction) prediction.hidden = true;
+        if (explanation) explanation.textContent = mode === 'dfs'
+          ? `Preorder DFS завершён: ${trace.order.join(' → ')}. Стек всегда отдавал ближайшую вершину слева.`
+          : `BFS завершён: ${trace.order.join(' → ')}. Очередь сохранила порядок добавления по уровням.`;
+      } else if (step) {
+        if (currentOutput) currentOutput.textContent = String(step.current);
+        if (visitedOutput) visitedOutput.textContent = step.visited.join(' → ');
+        if (frontierOutput) frontierOutput.textContent = step.frontierAfter.length > 0 ? step.frontierAfter.join(', ') : 'пусто';
+        const expected = step.frontierAfter[0];
+        if (prediction) prediction.hidden = expected === undefined;
+        if (options) {
+          options.replaceChildren();
+          if (expected !== undefined) {
+            const candidates = trace.nodes.filter(({ id }) => !step.visited.includes(id));
+            for (const candidate of candidates) {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.textContent = `Узел ${candidate.value}`;
+              button.dataset.treePredict = String(candidate.id);
+              button.setAttribute('aria-pressed', 'false');
+              button.addEventListener('click', () => {
+                const correct = candidate.id === expected;
+                revealed = true;
+                options.querySelectorAll('button').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+                if (feedback) {
+                  const reason = mode === 'dfs'
+                    ? `Вершина стека находится слева: это узел ${expected}.`
+                    : `В начале очереди слева стоит узел ${expected}.`;
+                  feedback.textContent = correct ? `Верно. ${reason}` : `Этот узел ждёт позже. ${reason}`;
+                  feedback.dataset.feedbackState = correct ? 'correct' : 'incorrect';
+                }
+                if (next) next.disabled = false;
+              });
+              options.append(button);
+            }
+          }
+        }
+        if (explanation) explanation.textContent = expected === undefined
+          ? 'Структура пуста: после этого шага обход завершится.'
+          : mode === 'dfs'
+            ? `DFS продолжит с вершины стека. Слева подготовлен узел ${expected}.`
+            : `BFS продолжит с начала очереди. Слева ожидает узел ${expected}.`;
+      }
+
+      modeButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.treeMode === mode)));
+      if (previous) previous.disabled = position === 0;
+      if (next) {
+        next.disabled = isResult || (step?.frontierAfter.length !== 0 && !revealed);
+        next.textContent = position === trace.steps.length - 1 ? 'Показать итог' : 'Следующий';
+      }
+    };
+
+    modeButtons.forEach((button) => button.addEventListener('click', () => {
+      mode = button.dataset.treeMode as TreeTraversalMode;
+      position = 0;
+      resetFeedback();
+      render();
+    }));
+    previous?.addEventListener('click', () => {
+      position = Math.max(0, position - 1);
+      resetFeedback();
+      render();
+    });
+    next?.addEventListener('click', () => {
+      position = Math.min(traces[mode].steps.length, position + 1);
+      resetFeedback();
+      render();
+    });
+    lab.querySelector<HTMLButtonElement>('[data-lab-reset]')?.addEventListener('click', () => {
+      position = 0;
+      resetFeedback();
+      render();
+      lab.querySelector<HTMLButtonElement>('[data-tree-options] button')?.focus();
+    });
+    render();
+  });
+</script>

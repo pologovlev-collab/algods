@@ -5,9 +5,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BinarySearchLab from '../../components/BinarySearchLab.astro';
 import LanguageSwitch from '../../components/LanguageSwitch.astro';
 import LearningBlocks from '../../components/LearningBlocks.astro';
+import LinkedListReversalLab from '../../components/LinkedListReversalLab.astro';
 import LessonPractice from '../../components/LessonPractice.astro';
 import LessonProgress from '../../components/LessonProgress.astro';
 import SlidingWindowLab from '../../components/SlidingWindowLab.astro';
+import TreeTraversalLab from '../../components/TreeTraversalLab.astro';
 import TwoPointersLab from '../../components/TwoPointersLab.astro';
 import { patterns } from '../../data/patterns';
 import { practiceTasks } from '../../data/practice';
@@ -76,6 +78,8 @@ const title = `${entry.data.title} — AlgoDS`;
       )}
       {entry.data.slug === 'opposite-two-pointers' && <TwoPointersLab />}
       {entry.data.slug === 'variable-sliding-window' && <SlidingWindowLab />}
+      {entry.data.slug === 'linked-list-relinking' && <LinkedListReversalLab />}
+      {entry.data.slug === 'tree-model-and-traversals' && <TreeTraversalLab />}
 
       <LessonProgress lessonId={entry.data.id} prerequisites={entry.data.prerequisites} />
       <LessonPractice problems={mappedProblems} />

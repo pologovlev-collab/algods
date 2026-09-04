@@ -244,6 +244,139 @@
   transform: none;
 }
 
+.linked-list-lab__nodes {
+  display: flex;
+  gap: 0.75rem;
+  min-width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linked-list-lab__nodes li {
+  width: 7rem;
+  padding: 0.65rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  text-align: center;
+}
+
+.linked-list-lab__nodes li[data-list-state='cur'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.linked-list-lab__nodes li[data-list-state='prev'] {
+  border-color: var(--success);
+}
+
+.linked-list-lab__nodes li[data-list-state='result'] {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+}
+
+.linked-list-lab__nodes strong,
+.linked-list-lab__nodes small {
+  display: block;
+}
+
+.linked-list-lab__nodes strong {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.linked-list-lab__nodes small {
+  margin-top: 0.35rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.linked-list-lab__warning {
+  margin: 1rem 0 0;
+  padding-inline-start: 0.8rem;
+  border-inline-start: 3px solid var(--danger);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.tree-lab__modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.tree-lab__modes button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.tree-lab__modes button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.tree-lab__diagram {
+  margin: 1.25rem 0 0;
+  padding: 1rem;
+  border-block: 1px solid var(--line);
+}
+
+.tree-lab__level {
+  display: flex;
+  gap: clamp(0.6rem, 6vw, 3rem);
+  justify-content: center;
+  margin: 0.65rem 0;
+}
+
+.tree-lab__node {
+  display: grid;
+  width: 3.4rem;
+  min-height: 3.4rem;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface-subtle);
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.tree-lab__node[data-tree-state='current'] {
+  border: 3px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.tree-lab__node[data-tree-state='frontier'] {
+  border-color: var(--accent);
+}
+
+.tree-lab__node[data-tree-state='visited'] {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  color: var(--success);
+}
+
+.tree-lab__node[data-tree-state='unseen'] {
+  opacity: 0.5;
+}
+
+.tree-lab__diagram figcaption {
+  margin-top: 0.8rem;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
 @media (max-width: 36rem) {
   .algorithm-lab__state {
     grid-template-columns: 1fr;
@@ -271,6 +404,19 @@
   .algorithm-lab__controls .button {
     flex: 1 1 8rem;
     justify-content: center;
+  }
+
+  .tree-lab__diagram {
+    padding-inline: 0.25rem;
+  }
+
+  .tree-lab__level {
+    gap: 0.55rem;
+  }
+
+  .tree-lab__node {
+    width: 2.9rem;
+    min-height: 2.9rem;
   }
 }
 
