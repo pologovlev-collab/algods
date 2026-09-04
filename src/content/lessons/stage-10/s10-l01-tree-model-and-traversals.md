@@ -22,7 +22,22 @@
     "miniChecks": 2,
     "guidedExercises": 1,
     "independentExercises": 1
-  }
+  },
+  "learningBlocks": [
+    {
+      "id": "preorder-call-trace",
+      "type": "trace",
+      "placement": "after-content",
+      "title": "Preorder фиксирует узел до спуска",
+      "body": "Для дерева 1 с левым ребёнком 2 и правым ребёнком 3 состояние стека объясняет порядок без магии рекурсии.",
+      "steps": [
+        { "label": "Старт", "state": "stack = [1]", "explanation": "Корень — первая ещё не обработанная вершина." },
+        { "label": "Берём 1", "state": "order = [1]", "explanation": "Сначала записываем корень, затем кладём правого и левого ребёнка." },
+        { "label": "Берём 2", "state": "order = [1, 2]", "explanation": "Левый ребёнок оказался на вершине стека и обрабатывается первым." },
+        { "label": "Берём 3", "state": "order = [1, 2, 3]", "explanation": "Стек пуст, поэтому обход завершён." }
+      ]
+    }
+  ]
 }
 ---
 # Модель дерева и три порядка обхода

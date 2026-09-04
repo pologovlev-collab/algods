@@ -22,7 +22,21 @@
     "miniChecks": 2,
     "guidedExercises": 1,
     "independentExercises": 1
-  }
+  },
+  "learningBlocks": [
+    {
+      "id": "choose-pointer-move",
+      "type": "prediction",
+      "placement": "before-content",
+      "title": "Какую границу можно отбросить?",
+      "body": "В отсортированном массиве [2, 5, 7, 12] крайняя сумма 14, а цель равна 19.",
+      "question": "Какой указатель нужно сдвинуть первым?",
+      "choices": [
+        { "id": "move-left", "label": "Сдвинуть left вправо", "correct": true, "feedback": "Верно. Сумма слишком мала, а движение left вправо — единственный ход, который может её увеличить." },
+        { "id": "move-right", "label": "Сдвинуть right влево", "correct": false, "feedback": "Этот ход уменьшит правое слагаемое и сделает сумму ещё меньше. Нужно увеличить левое слагаемое." }
+      ]
+    }
+  ]
 }
 ---
 # Два указателя навстречу

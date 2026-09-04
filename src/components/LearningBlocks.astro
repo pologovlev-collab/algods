@@ -1,0 +1,417 @@
+---
+import type { LearningBlock } from '../lib/learning-blocks';
+
+interface Props {
+  blocks: LearningBlock[];
+  placement: 'before-content' | 'after-content';
+}
+
+const { blocks, placement } = Astro.props;
+const visibleBlocks = blocks.filter((block) => block.placement === placement);
+const typeLabels: Record<LearningBlock['type'], string> = {
+  'mental-model': 'Ментальная модель',
+  prediction: 'Сначала предскажите',
+  trace: 'Трассировка',
+  complexity: 'Почему такая сложность',
+  mistake: 'Типичная ошибка',
+  choose: 'Выбрать или отказаться',
+};
+---
+
+{visibleBlocks.length > 0 && (
+  <div class:list={['learning-blocks', `learning-blocks--${placement}`]}>
+    {visibleBlocks.map((block) => (
+      <section class:list={['learning-block', `learning-block--${block.type}`]} data-learning-block={block.id}>
+        <header>
+          <p>{typeLabels[block.type]}</p>
+          <h2>{block.title}</h2>
+        </header>
+        <p class="learning-block__body">{block.body}</p>
+
+        {block.type === 'mental-model' && (
+          <ol class="learning-block__model">
+            {block.items.map((item) => (
+              <li><strong>{item.label}</strong><span>{item.detail}</span></li>
+            ))}
+          </ol>
+        )}
+
+        {block.type === 'prediction' && (
+          <div
+            class="learning-block__prediction"
+            data-learning-prediction
+            data-prediction={JSON.stringify(block).replaceAll('<', '\\u003c')}
+          >
+            <fieldset>
+              <legend>{block.question}</legend>
+              <div class="learning-block__choices">
+                {block.choices.map((choice) => (
+                  <button type="button" data-learning-choice={choice.id} aria-pressed="false">
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <p class="learning-block__feedback" data-learning-feedback aria-live="polite" hidden></p>
+            <button class="learning-block__reset" type="button" data-learning-reset hidden>Попробовать снова</button>
+          </div>
+        )}
+
+        {block.type === 'trace' && (
+          <ol class="learning-block__trace">
+            {block.steps.map((step) => (
+              <li>
+                <span>{step.label}</span>
+                <code>{step.state}</code>
+                <p>{step.explanation}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {block.type === 'complexity' && (
+          <div class="learning-block__complexity">
+            <ol>
+              {block.steps.map((step) => (
+                <li><strong>{step.label}</strong><span>{step.detail}</span></li>
+              ))}
+            </ol>
+            <p>{block.result}</p>
+          </div>
+        )}
+
+        {block.type === 'mistake' && (
+          <dl class="learning-block__mistake">
+            <div><dt>Ошибка</dt><dd><code>{block.wrong}</code></dd></div>
+            <div><dt>Почему ломается</dt><dd>{block.why}</dd></div>
+            <div><dt>Безопасный ход</dt><dd>{block.fix}</dd></div>
+          </dl>
+        )}
+
+        {block.type === 'choose' && (
+          <div class="learning-block__choice-guide">
+            <section><h3>Подходит, когда</h3><ul>{block.useWhen.map((item) => <li>{item}</li>)}</ul></section>
+            <section><h3>Не подходит, когда</h3><ul>{block.avoidWhen.map((item) => <li>{item}</li>)}</ul></section>
+          </div>
+        )}
+      </section>
+    ))}
+  </div>
+)}
+
+<script>
+  import { evaluatePrediction, type PredictionLearningBlock } from '../lib/learning-blocks';
+
+  document.querySelectorAll<HTMLElement>('[data-learning-prediction]').forEach((prediction) => {
+    if (prediction.dataset.learningReady === 'true') return;
+    prediction.dataset.learningReady = 'true';
+    const feedback = prediction.querySelector<HTMLElement>('[data-learning-feedback]');
+    const reset = prediction.querySelector<HTMLButtonElement>('[data-learning-reset]');
+    let block: PredictionLearningBlock;
+    try {
+      block = JSON.parse(prediction.dataset.prediction ?? '') as PredictionLearningBlock;
+    } catch {
+      return;
+    }
+
+    const choices = [...prediction.querySelectorAll<HTMLButtonElement>('[data-learning-choice]')];
+    const clear = () => {
+      choices.forEach((choice) => choice.setAttribute('aria-pressed', 'false'));
+      if (feedback) {
+        feedback.hidden = true;
+        feedback.textContent = '';
+        delete feedback.dataset.feedbackState;
+      }
+      if (reset) reset.hidden = true;
+    };
+
+    choices.forEach((choice) => choice.addEventListener('click', () => {
+      const result = evaluatePrediction(block, choice.dataset.learningChoice ?? '');
+      if (!result || !feedback) return;
+      choices.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === choice)));
+      feedback.textContent = result.feedback;
+      feedback.dataset.feedbackState = result.correct ? 'correct' : 'incorrect';
+      feedback.hidden = false;
+      if (reset) reset.hidden = false;
+    }));
+    reset?.addEventListener('click', () => {
+      clear();
+      choices[0]?.focus();
+    });
+  });
+</script>
+
+<style>
+  .learning-blocks {
+    display: grid;
+    gap: 1.8rem;
+    margin-block: 2.5rem;
+  }
+
+  .learning-block {
+    padding-block: 1.35rem;
+    border-block: 1px solid var(--line-strong);
+  }
+
+  .learning-block > header > p {
+    margin-bottom: 0.35rem;
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .learning-block > header > h2 {
+    margin-bottom: 0.65rem;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+  }
+
+  .learning-block__body {
+    max-width: 65ch;
+    color: var(--ink-soft);
+  }
+
+  .learning-block__model,
+  .learning-block__trace,
+  .learning-block__complexity ol {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .learning-block__model {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--line);
+  }
+
+  .learning-block__model li {
+    min-width: 0;
+    padding: 0.85rem;
+    background: var(--surface);
+  }
+
+  .learning-block__model strong,
+  .learning-block__model span {
+    display: block;
+  }
+
+  .learning-block__model strong {
+    margin-bottom: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .learning-block__model span {
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .learning-block__prediction fieldset {
+    margin: 1.1rem 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .learning-block__prediction legend {
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+    font-weight: 750;
+  }
+
+  .learning-block__choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .learning-block__choices button,
+  .learning-block__reset {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .learning-block__choices button:hover,
+  .learning-block__choices button[aria-pressed='true'] {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .learning-block__choices button:focus-visible,
+  .learning-block__reset:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    outline-offset: 2px;
+  }
+
+  .learning-block__feedback {
+    margin: 0.9rem 0 0;
+    padding-inline-start: 0.8rem;
+    border-inline-start: 3px solid var(--line-strong);
+    color: var(--ink);
+  }
+
+  .learning-block__feedback[data-feedback-state='correct'] {
+    border-color: var(--success);
+  }
+
+  .learning-block__feedback[data-feedback-state='incorrect'] {
+    border-color: var(--danger);
+  }
+
+  .learning-block__reset {
+    margin-top: 0.7rem;
+    min-height: 2.5rem;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+  }
+
+  .learning-block__trace,
+  .learning-block__complexity ol {
+    display: grid;
+    gap: 0.8rem;
+    counter-reset: learning-step;
+  }
+
+  .learning-block__trace li,
+  .learning-block__complexity li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2rem minmax(6rem, auto) minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: baseline;
+    counter-increment: learning-step;
+  }
+
+  .learning-block__trace li::before,
+  .learning-block__complexity li::before {
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 800;
+    content: counter(learning-step, decimal-leading-zero);
+  }
+
+  .learning-block__trace li > span,
+  .learning-block__complexity li > strong {
+    font-size: 0.78rem;
+  }
+
+  .learning-block__trace code {
+    padding: 0.15rem 0.35rem;
+    border-radius: 0.2rem;
+    background: var(--surface-subtle);
+    font-size: 0.76rem;
+  }
+
+  .learning-block__trace li p,
+  .learning-block__complexity li span {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
+
+  .learning-block__complexity > p {
+    margin: 1rem 0 0;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 750;
+  }
+
+  .learning-block--mistake {
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--danger);
+  }
+
+  .learning-block__mistake {
+    display: grid;
+    gap: 0.65rem;
+    margin: 1rem 0 0;
+  }
+
+  .learning-block__mistake div {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+
+  .learning-block__mistake dt {
+    color: var(--ink-soft);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .learning-block__mistake dd {
+    margin: 0;
+    font-size: 0.84rem;
+  }
+
+  .learning-block__choice-guide {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .learning-block__choice-guide section {
+    padding-top: 0.8rem;
+    border-top: 2px solid var(--line-strong);
+  }
+
+  .learning-block__choice-guide section:first-child {
+    border-color: var(--success);
+  }
+
+  .learning-block__choice-guide h3 {
+    margin-bottom: 0.55rem;
+    font-size: 0.88rem;
+  }
+
+  .learning-block__choice-guide ul {
+    margin: 0;
+    padding-inline-start: 1.1rem;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 36rem) {
+    .learning-block__choices {
+      display: grid;
+    }
+
+    .learning-block__choices button {
+      width: 100%;
+      text-align: left;
+    }
+
+    .learning-block__trace li,
+    .learning-block__complexity li,
+    .learning-block__mistake div,
+    .learning-block__choice-guide {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .learning-block * {
+      scroll-behavior: auto;
+    }
+  }
+</style>

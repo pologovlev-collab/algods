@@ -2,6 +2,8 @@ import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
+import { assertValidLearningBlocks, type LearningBlock } from './learning-blocks.ts';
+
 export interface LessonData {
   id: string;
   slug: string;
@@ -18,6 +20,7 @@ export interface LessonData {
     guidedExercises: number;
     independentExercises: number;
   };
+  learningBlocks?: LearningBlock[];
 }
 
 export interface LessonDocument {
@@ -41,6 +44,11 @@ export function parseLessonSource(source: string, filePath = '<memory>'): Lesson
     data = JSON.parse(frontmatter) as LessonData;
   } catch (error) {
     throw new Error(`${filePath}: invalid JSON frontmatter: ${(error as Error).message}`);
+  }
+  try {
+    assertValidLearningBlocks(data.learningBlocks ?? []);
+  } catch (error) {
+    throw new Error(`${filePath}: invalid learning blocks: ${(error as Error).message}`);
   }
   return { filePath, data, body };
 }

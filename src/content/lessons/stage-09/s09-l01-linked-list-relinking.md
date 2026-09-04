@@ -21,7 +21,19 @@
     "miniChecks": 2,
     "guidedExercises": 1,
     "independentExercises": 1
-  }
+  },
+  "learningBlocks": [
+    {
+      "id": "save-next-first",
+      "type": "mistake",
+      "placement": "after-content",
+      "title": "Сначала сохраните путь к непройденному хвосту",
+      "body": "При развороте списка порядок трёх присваиваний — часть корректности, а не стилистическая деталь.",
+      "wrong": "cur.next = prev; next = cur.next",
+      "why": "После первого присваивания cur.next уже ведёт назад. Исходная ссылка на непройденный хвост потеряна.",
+      "fix": "Сначала next = cur.next, затем cur.next = prev, и только после этого сдвигайте prev и cur."
+    }
+  ]
 }
 ---
 # Узлы, dummy и безопасное перенаправление ссылок

@@ -10,7 +10,21 @@
   "patterns": ["dynamic-programming"],
   "summary": "Мемоизация сохраняет точный ответ для каждой остаточной подзадачи и превращает повторяющееся дерево рекурсии в граф состояний.",
   "outcomes": ["выбирать достаточное состояние DP", "объяснять устранение повторных рекурсивных вызовов мемоизацией"],
-  "practice": {"miniChecks": 2, "guidedExercises": 1, "independentExercises": 1}
+  "practice": {"miniChecks": 2, "guidedExercises": 1, "independentExercises": 1},
+  "learningBlocks": [
+    {
+      "id": "dp-state-question",
+      "type": "mental-model",
+      "placement": "before-content",
+      "title": "Ячейка DP отвечает на один законченный вопрос",
+      "body": "Для лестницы состояние не хранит весь маршрут. Оно хранит ответ для остатка задачи, достаточный для следующего перехода.",
+      "items": [
+        { "label": "Состояние ways(r)", "detail": "Сколько способов пройти ровно r оставшихся ступеней." },
+        { "label": "Базы", "detail": "ways(0) = 1, а отрицательный остаток не даёт способа." },
+        { "label": "Переход", "detail": "ways(r) = ways(r − 1) + ways(r − 2)." }
+      ]
+    }
+  ]
 }
 ---
 # Определяем состояние DP

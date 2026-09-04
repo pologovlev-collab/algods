@@ -21,7 +21,21 @@
     "miniChecks": 2,
     "guidedExercises": 1,
     "independentExercises": 1
-  }
+  },
+  "learningBlocks": [
+    {
+      "id": "prefix-summary-model",
+      "type": "mental-model",
+      "placement": "before-content",
+      "title": "Префикс превращается в короткое резюме",
+      "body": "После обработки очередного элемента алгоритму не нужен весь прошлый префикс — достаточно точно обновлённых агрегатов.",
+      "items": [
+        { "label": "Читаем values[i]", "detail": "Текущий элемент доступен один раз." },
+        { "label": "Обновляем state", "detail": "sum получает значение, positive — условный вклад." },
+        { "label": "Сохраняем инвариант", "detail": "Агрегаты уже верны для values[0..i]." }
+      ]
+    }
+  ]
 }
 ---
 # Обход массивов и строк

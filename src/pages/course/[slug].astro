@@ -4,6 +4,7 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BinarySearchLab from '../../components/BinarySearchLab.astro';
 import LanguageSwitch from '../../components/LanguageSwitch.astro';
+import LearningBlocks from '../../components/LearningBlocks.astro';
 import LessonPractice from '../../components/LessonPractice.astro';
 import LessonProgress from '../../components/LessonProgress.astro';
 import { patterns } from '../../data/patterns';
@@ -62,9 +63,11 @@ const title = `${entry.data.title} — AlgoDS`;
         <p>После урока вы сможете</p>
         <ul>{entry.data.outcomes.map((outcome) => <li>{outcome}</li>)}</ul>
       </div>
+      <LearningBlocks blocks={entry.data.learningBlocks ?? []} placement="before-content" />
       <div class="lesson-body">
         <Content />
       </div>
+      <LearningBlocks blocks={entry.data.learningBlocks ?? []} placement="after-content" />
 
       {(entry.data.slug === 'binary-search-invariant' || entry.data.slug === 'binary-search-boundaries') && (
         <BinarySearchLab />

@@ -21,7 +21,21 @@
     "miniChecks": 2,
     "guidedExercises": 1,
     "independentExercises": 1
-  }
+  },
+  "learningBlocks": [
+    {
+      "id": "heap-tree-array",
+      "type": "mental-model",
+      "placement": "before-content",
+      "title": "Один объект, два способа его увидеть",
+      "body": "Форма полного дерева уже зашита в индексах массива, поэтому ссылки на детей и родителя вычисляются арифметически.",
+      "items": [
+        { "label": "array[i]", "detail": "Узел на позиции i в обходе дерева по уровням." },
+        { "label": "2i + 1, 2i + 2", "detail": "Левый и правый ребёнок, если индекс существует." },
+        { "label": "⌊(i − 1) / 2⌋", "detail": "Родитель любого узла, кроме корня." }
+      ]
+    }
+  ]
 }
 ---
 # Куча и priority queue
