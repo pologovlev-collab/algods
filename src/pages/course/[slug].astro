@@ -3,6 +3,7 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BinarySearchLab from '../../components/BinarySearchLab.astro';
+import DynamicProgrammingLab from '../../components/DynamicProgrammingLab.astro';
 import LanguageSwitch from '../../components/LanguageSwitch.astro';
 import LearningBlocks from '../../components/LearningBlocks.astro';
 import LinkedListReversalLab from '../../components/LinkedListReversalLab.astro';
@@ -80,6 +81,7 @@ const title = `${entry.data.title} — AlgoDS`;
       {entry.data.slug === 'variable-sliding-window' && <SlidingWindowLab />}
       {entry.data.slug === 'linked-list-relinking' && <LinkedListReversalLab />}
       {entry.data.slug === 'tree-model-and-traversals' && <TreeTraversalLab />}
+      {entry.data.slug === 'dp-tabulation-and-order' && <DynamicProgrammingLab />}
 
       <LessonProgress lessonId={entry.data.id} prerequisites={entry.data.prerequisites} />
       <LessonPractice problems={mappedProblems} />

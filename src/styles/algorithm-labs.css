@@ -108,6 +108,27 @@
   color: var(--success);
 }
 
+.algorithm-lab__array li[data-cell-state='current'] {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.algorithm-lab__array li[data-cell-state='dependency'] {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 9%, var(--surface));
+}
+
+.algorithm-lab__array li[data-cell-state='result'] {
+  border: 2px solid var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  color: var(--success);
+}
+
+.algorithm-lab__array li[data-cell-state='unknown'] {
+  opacity: 0.45;
+}
+
 .algorithm-lab__array li[data-cell-state='discarded'],
 .algorithm-lab__array li[data-cell-state='outside'] {
   opacity: 0.4;

@@ -1,0 +1,203 @@
+---
+import { createMinClimbCostTrace } from '../lib/labs/dynamic-programming';
+import '../styles/algorithm-labs.css';
+
+const trace = createMinClimbCostTrace([10, 15, 20, 4, 6]);
+---
+
+<section
+  class="algorithm-lab"
+  data-dp-lab
+  data-trace={JSON.stringify(trace)}
+  aria-labelledby="dp-lab-title"
+>
+  <header class="algorithm-lab__header">
+    <p class="eyebrow">Интерактивная лаборатория</p>
+    <h2 id="dp-lab-title">Почему текущую ячейку уже можно вычислить?</h2>
+    <p><code>dp[i]</code> — минимальная цена попасть на ступень <code>i</code>. Последний шаг приходит с <code>i − 1</code> или <code>i − 2</code>, поэтому таблица заполняется слева направо.</p>
+  </header>
+
+  <div class="algorithm-lab__progress">
+    <span data-lab-step>Шаг 1</span>
+    <span>Цены: <strong>10, 15, 20, 4, 6</strong></span>
+  </div>
+
+  <div class="algorithm-lab__array-wrap" tabindex="0" aria-label="Таблица динамического программирования">
+    <ol class="algorithm-lab__array" style={`--lab-cell-count: ${trace.costs.length}`}>
+      {trace.costs.map((cost, index) => (
+        <li data-dp-cell={index}>
+          <span class="algorithm-lab__pointers" data-dp-marker aria-hidden="true"></span>
+          <small>cost[{index}] = {cost}</small>
+          <strong data-dp-value>{index === 0 ? cost : '?'}</strong>
+          <small>dp[{index}]</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <dl class="algorithm-lab__state">
+    <div><dt>Состояние</dt><dd data-dp-state>dp[0]</dd></div>
+    <div><dt>Зависимости</dt><dd data-dp-dependencies>база</dd></div>
+    <div><dt>Значение</dt><dd data-dp-formula>dp[0] = cost[0] = 10</dd></div>
+  </dl>
+
+  <div class="algorithm-lab__prediction" data-lab-prediction hidden>
+    <fieldset>
+      <legend data-dp-question>Какие готовые состояния нужны для следующей ячейки?</legend>
+      <div class="algorithm-lab__prediction-options">
+        <button type="button" data-dp-predict="previous-two" aria-pressed="false">Два предыдущих состояния</button>
+        <button type="button" data-dp-predict="all-previous" aria-pressed="false">Вся заполненная таблица</button>
+        <button type="button" data-dp-predict="future" aria-pressed="false">Следующее состояние справа</button>
+      </div>
+    </fieldset>
+    <p class="algorithm-lab__feedback" data-lab-feedback aria-live="polite">Сначала назовите зависимости перехода.</p>
+  </div>
+
+  <p class="algorithm-lab__explanation" data-lab-explanation aria-live="polite">Первая ячейка — база: чтобы оказаться на ступени 0, нужно заплатить её цену.</p>
+
+  <div class="algorithm-lab__controls">
+    <button class="button button--secondary" type="button" data-lab-previous disabled>Предыдущий</button>
+    <button class="button button--primary" type="button" data-lab-next>Следующий</button>
+    <button class="text-button" type="button" data-lab-reset>Сбросить</button>
+  </div>
+</section>
+
+<script>
+  import type { DynamicProgrammingTrace } from '../lib/labs/dynamic-programming';
+
+  document.querySelectorAll<HTMLElement>('[data-dp-lab]').forEach((lab) => {
+    if (lab.dataset.labReady === 'true') return;
+    lab.dataset.labReady = 'true';
+    const trace = JSON.parse(lab.dataset.trace ?? '') as DynamicProgrammingTrace;
+    const cells = [...lab.querySelectorAll<HTMLElement>('[data-dp-cell]')];
+    const prediction = lab.querySelector<HTMLElement>('[data-lab-prediction]');
+    const predictors = [...lab.querySelectorAll<HTMLButtonElement>('[data-dp-predict]')];
+    const feedback = lab.querySelector<HTMLElement>('[data-lab-feedback]');
+    const explanation = lab.querySelector<HTMLElement>('[data-lab-explanation]');
+    const previous = lab.querySelector<HTMLButtonElement>('[data-lab-previous]');
+    const next = lab.querySelector<HTMLButtonElement>('[data-lab-next]');
+    const stepLabel = lab.querySelector<HTMLElement>('[data-lab-step]');
+    const stateOutput = lab.querySelector<HTMLElement>('[data-dp-state]');
+    const dependenciesOutput = lab.querySelector<HTMLElement>('[data-dp-dependencies]');
+    const formulaOutput = lab.querySelector<HTMLElement>('[data-dp-formula]');
+    const question = lab.querySelector<HTMLElement>('[data-dp-question]');
+    let position = 0;
+    let revealed = false;
+
+    const clearPrediction = () => {
+      revealed = false;
+      predictors.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+      if (feedback) {
+        feedback.textContent = 'Сначала назовите зависимости перехода.';
+        delete feedback.dataset.feedbackState;
+      }
+    };
+
+    const render = () => {
+      const step = trace.steps[position];
+      const isResult = position >= trace.steps.length;
+      const dependencyNames = step?.dependencies.map((index) => `dp[${index}]`) ?? [];
+      const dependencyValues = step?.dependencies.map((index) => step.tableBefore[index]) ?? [];
+      if (stepLabel) stepLabel.textContent = isResult
+        ? `Итог · ${trace.steps.length + 1} / ${trace.steps.length + 1}`
+        : `Шаг ${position + 1} / ${trace.steps.length + 1}`;
+
+      const visibleTable = isResult
+        ? trace.table
+        : step?.kind === 'base' || revealed
+          ? step?.tableAfter
+          : step?.tableBefore;
+      cells.forEach((cell) => {
+        const index = Number(cell.dataset.dpCell);
+        const marker = cell.querySelector<HTMLElement>('[data-dp-marker]');
+        const value = cell.querySelector<HTMLElement>('[data-dp-value]');
+        if (marker) marker.replaceChildren();
+        if (value) value.textContent = String(visibleTable?.[index] ?? '?');
+        if (isResult) {
+          cell.dataset.cellState = index === trace.exitFrom ? 'result' : 'ready';
+          return;
+        }
+        if (!step) return;
+        cell.dataset.cellState = index === step.index
+          ? 'current'
+          : step.dependencies.includes(index)
+            ? 'dependency'
+            : step.tableBefore[index] !== null
+              ? 'ready'
+              : 'unknown';
+        if (marker && index === step.index) {
+          const label = document.createElement('span');
+          label.textContent = step.kind === 'base' ? 'база' : 'считаем';
+          marker.append(label);
+        }
+        if (marker && step.dependencies.includes(index)) {
+          const label = document.createElement('span');
+          label.textContent = 'нужно';
+          marker.append(label);
+        }
+      });
+
+      if (isResult) {
+        if (stateOutput) stateOutput.textContent = 'выход за лестницу';
+        if (dependenciesOutput) dependenciesOutput.textContent = `dp[${trace.table.length - 2}], dp[${trace.table.length - 1}]`;
+        if (formulaOutput) formulaOutput.textContent = `ответ = ${trace.answer}`;
+        if (prediction) prediction.hidden = true;
+        if (explanation) explanation.textContent = `Последний прыжок можно сделать с одной из двух последних ступеней. Минимум достигается через dp[${trace.exitFrom}] = ${trace.answer}.`;
+      } else if (step) {
+        if (stateOutput) stateOutput.textContent = `dp[${step.index}]`;
+        if (dependenciesOutput) dependenciesOutput.textContent = step.kind === 'base'
+          ? 'база'
+          : dependencyNames.join(', ');
+        if (formulaOutput) formulaOutput.textContent = step.kind === 'base' || revealed
+          ? `dp[${step.index}] = ${step.value}`
+          : 'пока неизвестно';
+        if (question) question.textContent = `Какие готовые состояния нужны для dp[${step.index}]?`;
+        if (prediction) prediction.hidden = step.kind === 'base';
+        if (explanation) explanation.textContent = step.kind === 'base'
+          ? `Ячейка dp[${step.index}] — база: её значение сразу равно cost[${step.index}] = ${step.cost}.`
+          : revealed
+            ? `Обе зависимости готовы: ${dependencyNames.join(' и ')}. Поэтому dp[${step.index}] = ${step.cost} + min(${dependencyValues.join(', ')}) = ${step.value}.`
+            : `Сначала укажите зависимости перехода. Их значения уже вычислены слева от dp[${step.index}].`;
+      }
+
+      if (previous) previous.disabled = position === 0;
+      if (next) {
+        next.disabled = isResult || (step?.kind === 'transition' && !revealed);
+        next.textContent = position === trace.steps.length - 1 ? 'Показать итог' : 'Следующий';
+      }
+    };
+
+    predictors.forEach((button) => button.addEventListener('click', () => {
+      const step = trace.steps[position];
+      if (!step || step.kind !== 'transition') return;
+      const correct = button.dataset.dpPredict === 'previous-two';
+      revealed = true;
+      predictors.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+      if (feedback) {
+        feedback.textContent = correct
+          ? `Верно. Переход использует только dp[${step.index - 2}] и dp[${step.index - 1}], и оба состояния уже готовы.`
+          : `Для этого перехода достаточно двух состояний: dp[${step.index - 2}] и dp[${step.index - 1}]. Будущие ячейки ещё не определены.`;
+        feedback.dataset.feedbackState = correct ? 'correct' : 'incorrect';
+      }
+      if (next) next.disabled = false;
+      render();
+    }));
+    previous?.addEventListener('click', () => {
+      position = Math.max(0, position - 1);
+      clearPrediction();
+      render();
+    });
+    next?.addEventListener('click', () => {
+      position = Math.min(trace.steps.length, position + 1);
+      clearPrediction();
+      render();
+    });
+    lab.querySelector<HTMLButtonElement>('[data-lab-reset]')?.addEventListener('click', () => {
+      position = 0;
+      clearPrediction();
+      render();
+      next?.focus();
+    });
+    render();
+  });
+</script>
