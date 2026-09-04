@@ -51,8 +51,8 @@ const sectionEntries: SearchEntryDraft[] = [
     href: '/practice/',
     title: 'Практика',
     aliases: ['practice', 'problems', 'задачи'],
-    topics: ['LeetCode 75', 'CodeRun', 'задачи для собеседований'],
-    context: 'LeetCode 75 и русскоязычные задачи CodeRun',
+    topics: ['LeetCode 75', 'CodeRun', 'Codewars', 'задачи для собеседований'],
+    context: 'LeetCode 75, русскоязычные задачи CodeRun и задачи Codewars',
   },
   {
     id: 'section:leetcode-75',

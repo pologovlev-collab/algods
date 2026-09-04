@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { practiceTasks } from '../src/data/practice';
 import {
   CODERUN_PROGRESS_IDS,
+  KNOWN_PROBLEM_ID_SET,
   LEETCODE_75_PROGRESS_IDS,
 } from '../src/data/progress-ids';
+import { patterns } from '../src/data/patterns';
+import { readLessonDocuments } from '../src/lib/content';
+import { orderCourseLessons } from '../src/lib/course';
 import {
   assertValidPracticeTasks,
   filterPracticeTasks,
@@ -12,11 +16,14 @@ import {
   groupLeetCode75Tasks,
   normalizePracticeText,
   orderPracticeTasks,
+  selectLessonPracticeTasks,
 } from '../src/lib/practice';
 import {
   LEGACY_CODERUN_PROGRESS_IDS,
   LEGACY_LEETCODE_75_PROGRESS_IDS,
 } from './fixtures/practice-compatibility';
+
+const lessonDirectory = new URL('../src/content/lessons/', import.meta.url);
 
 describe('normalized practice domain', () => {
   it('keeps one unique canonical entity per provider task with stable progress IDs', () => {
@@ -124,5 +131,38 @@ describe('normalized practice domain', () => {
       practiceTasks[0]!,
       practiceTasks[0]!,
     ])).toThrow('duplicate practice task id');
+  });
+
+  it('selects a deterministic, relevant six-task lesson bridge with available diversity', async () => {
+    const lessons = orderCourseLessons(
+      (await readLessonDocuments(lessonDirectory)).map(({ data }) => data),
+    );
+    const lesson = lessons.find(({ id }) => id === 's06-l01')!;
+    const lessonTopics = patterns
+      .filter(({ id }) => lesson.patterns.includes(id))
+      .map(({ title }) => title);
+    const options = {
+      lessonId: lesson.id,
+      lessonStage: lesson.stage,
+      lessonTopics,
+      orderedLessons: lessons,
+    };
+
+    const selected = selectLessonPracticeTasks(practiceTasks, options);
+    const reversed = selectLessonPracticeTasks([...practiceTasks].reverse(), options);
+
+    expect(selected).toHaveLength(6);
+    expect(selected.map(({ id }) => id)).toEqual(reversed.map(({ id }) => id));
+    expect(new Set(selected.map(({ id }) => id)).size).toBe(selected.length);
+    expect(new Set(selected.map(({ provider }) => provider))).toEqual(
+      new Set(['leetcode', 'coderun', 'codewars']),
+    );
+    expect(new Set(selected.map(({ mode }) => mode))).toEqual(
+      new Set(['guided', 'transfer', 'independent']),
+    );
+    expect(selected.every(({ id }) => KNOWN_PROBLEM_ID_SET.has(id))).toBe(true);
+    expect(selected.every(({ prerequisiteLessonIds }) => (
+      prerequisiteLessonIds.includes(lesson.id)
+    ))).toBe(true);
   });
 });

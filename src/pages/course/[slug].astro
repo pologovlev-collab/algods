@@ -6,9 +6,11 @@ import BinarySearchLab from '../../components/BinarySearchLab.astro';
 import LanguageSwitch from '../../components/LanguageSwitch.astro';
 import LessonPractice from '../../components/LessonPractice.astro';
 import LessonProgress from '../../components/LessonProgress.astro';
-import { leetcode75Problems } from '../../data/leetcode75';
+import { patterns } from '../../data/patterns';
+import { practiceTasks } from '../../data/practice';
 import { stages } from '../../data/stages';
-import { getLessonNavigation, getPracticeAnchorLessonId, orderCourseLessons } from '../../lib/course';
+import { getLessonNavigation, orderCourseLessons } from '../../lib/course';
+import { selectLessonPracticeTasks } from '../../lib/practice';
 import { buildReferenceEntries } from '../../lib/reference';
 
 export async function getStaticPaths() {
@@ -28,9 +30,15 @@ const stage = stages.find(({ id }) => id === entry.data.stage);
 const relatedReferenceEntries = buildReferenceEntries(orderedLessons)
   .filter((reference) => reference.patternId && entry.data.patterns.includes(reference.patternId))
   .slice(0, 2);
-const mappedProblems = leetcode75Problems.filter(
-  (problem) => getPracticeAnchorLessonId(problem.prerequisiteLessonIds, orderedLessons) === entry.data.id,
-);
+const lessonTopics = patterns
+  .filter(({ id }) => entry.data.patterns.includes(id))
+  .map(({ title }) => title);
+const mappedProblems = selectLessonPracticeTasks(practiceTasks, {
+  lessonId: entry.data.id,
+  lessonStage: entry.data.stage,
+  lessonTopics,
+  orderedLessons,
+});
 const { Content } = await render(entry);
 const title = `${entry.data.title} — AlgoDS`;
 ---

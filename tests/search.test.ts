@@ -95,6 +95,11 @@ describe('global search index', () => {
     expect(entries.filter(({ type }) => type === 'reference')).toHaveLength(33);
     expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(146);
 
+    expect(entries.find(({ id }) => id === 'section:practice')).toMatchObject({
+      topics: ['LeetCode 75', 'CodeRun', 'Codewars', 'задачи для собеседований'],
+      context: 'LeetCode 75, русскоязычные задачи CodeRun и задачи Codewars',
+    });
+
     entries.forEach((entry, index) => {
       expect(entry.sourceOrder).toBe(index);
       expect(entry.title.trim().length).toBeGreaterThan(0);
