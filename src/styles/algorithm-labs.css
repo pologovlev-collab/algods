@@ -1,0 +1,284 @@
+.algorithm-lab {
+  margin-top: 4rem;
+  padding: clamp(1.15rem, 4vw, 2rem);
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.algorithm-lab__header h2 {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.algorithm-lab__header > p:last-child {
+  max-width: 66ch;
+  color: var(--ink-soft);
+}
+
+.algorithm-lab__progress {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  padding-block: 0.65rem;
+  border-block: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.algorithm-lab__progress strong {
+  color: var(--ink);
+}
+
+.algorithm-lab__array-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1.2rem 0 0.45rem;
+}
+
+.algorithm-lab__array {
+  display: grid;
+  grid-template-columns: repeat(var(--lab-cell-count), minmax(4.35rem, 1fr));
+  gap: 0.45rem;
+  min-width: calc(var(--lab-cell-count) * 4.35rem + (var(--lab-cell-count) - 1) * 0.45rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.algorithm-lab__array li {
+  min-width: 0;
+  padding: 0.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  text-align: center;
+}
+
+.algorithm-lab__array strong,
+.algorithm-lab__array small {
+  display: block;
+}
+
+.algorithm-lab__array strong {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.algorithm-lab__array small {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.algorithm-lab__pointers {
+  display: flex;
+  min-height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.algorithm-lab__pointers span {
+  padding: 0.12rem 0.26rem;
+  border-radius: 0.2rem;
+  background: var(--accent-strong);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 800;
+}
+
+.algorithm-lab__array li[data-cell-state='boundary'],
+.algorithm-lab__array li[data-cell-state='active'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.algorithm-lab__array li[data-cell-state='pair'] {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  color: var(--success);
+}
+
+.algorithm-lab__array li[data-cell-state='discarded'],
+.algorithm-lab__array li[data-cell-state='outside'] {
+  opacity: 0.4;
+}
+
+.algorithm-lab__array li[data-best='true'] {
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--success) 75%, transparent);
+}
+
+.algorithm-lab__state {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1rem 0 0;
+  border-block: 1px solid var(--line);
+}
+
+.algorithm-lab__state div {
+  min-width: 0;
+  padding: 0.75rem;
+  border-inline-end: 1px solid var(--line);
+}
+
+.algorithm-lab__state div:last-child {
+  border-inline-end: 0;
+}
+
+.algorithm-lab__state dt {
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.algorithm-lab__state dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.algorithm-lab__operation,
+.algorithm-lab__explanation,
+.algorithm-lab__feedback {
+  color: var(--ink-soft);
+}
+
+.algorithm-lab__operation {
+  margin: 0.9rem 0 0;
+  font-size: 0.78rem;
+}
+
+.algorithm-lab__prediction {
+  margin: 1.15rem 0 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+}
+
+.algorithm-lab__prediction fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.algorithm-lab__prediction legend {
+  margin-bottom: 0.65rem;
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.algorithm-lab__prediction-options,
+.algorithm-lab__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.algorithm-lab__prediction-options button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.algorithm-lab__prediction-options button:hover,
+.algorithm-lab__prediction-options button[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.algorithm-lab__prediction-options button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  outline-offset: 2px;
+}
+
+.algorithm-lab__feedback {
+  min-height: 2.8rem;
+  margin: 0.75rem 0 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 3px solid var(--line-strong);
+  font-size: 0.86rem;
+}
+
+.algorithm-lab__feedback[data-feedback-state='correct'] {
+  border-color: var(--success);
+}
+
+.algorithm-lab__feedback[data-feedback-state='incorrect'] {
+  border-color: var(--danger);
+}
+
+.algorithm-lab__explanation {
+  min-height: 3.4rem;
+  margin: 1rem 0 0;
+}
+
+.algorithm-lab__controls {
+  margin-top: 1rem;
+}
+
+.algorithm-lab__controls button {
+  min-height: 2.75rem;
+}
+
+.algorithm-lab__controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+@media (max-width: 36rem) {
+  .algorithm-lab__state {
+    grid-template-columns: 1fr;
+  }
+
+  .algorithm-lab__state div,
+  .algorithm-lab__state div:last-child {
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .algorithm-lab__state div:last-child {
+    border-bottom: 0;
+  }
+
+  .algorithm-lab__prediction-options {
+    display: grid;
+  }
+
+  .algorithm-lab__prediction-options button {
+    width: 100%;
+    text-align: start;
+  }
+
+  .algorithm-lab__controls .button {
+    flex: 1 1 8rem;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .algorithm-lab *,
+  .algorithm-lab *::before,
+  .algorithm-lab *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
+}

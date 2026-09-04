@@ -1,0 +1,197 @@
+---
+import { createSlidingWindowTrace } from '../lib/labs/sliding-window';
+import '../styles/algorithm-labs.css';
+
+const trace = createSlidingWindowTrace([2, 1, 5, 1, 3], 7);
+---
+
+<section
+  class="algorithm-lab"
+  data-sliding-window-lab
+  data-trace={JSON.stringify(trace)}
+  aria-labelledby="sliding-window-lab-title"
+>
+  <header class="algorithm-lab__header">
+    <p class="eyebrow">Интерактивная лаборатория</p>
+    <h2 id="sliding-window-lab-title">Расширить окно или восстановить допустимость?</h2>
+    <p>Найдите самый длинный непрерывный участок с суммой не больше <code>7</code>. Все числа неотрицательны, поэтому сжатие слева не увеличивает сумму.</p>
+  </header>
+
+  <div class="algorithm-lab__progress">
+    <span data-lab-step>Шаг 1</span>
+    <span>Условие: <strong>sum ≤ 7</strong></span>
+  </div>
+
+  <div class="algorithm-lab__array-wrap" tabindex="0" aria-label="Массив с границами текущего окна">
+    <ol class="algorithm-lab__array" style={`--lab-cell-count: ${trace.values.length}`}>
+      {trace.values.map((value, index) => (
+        <li data-window-cell={index}>
+          <span class="algorithm-lab__pointers" data-cell-pointers aria-hidden="true"></span>
+          <strong>{value}</strong>
+          <small>индекс {index}</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <dl class="algorithm-lab__state">
+    <div><dt>Текущее окно</dt><dd data-window-bounds>[0, 0]</dd></div>
+    <div><dt>Сумма и условие</dt><dd data-window-sum>2 ≤ 7</dd></div>
+    <div><dt>Лучший ответ</dt><dd data-window-best>длина 1</dd></div>
+  </dl>
+  <p class="algorithm-lab__operation" data-window-operation>Последняя операция: добавили значение 2 справа.</p>
+
+  <div class="algorithm-lab__prediction" data-lab-prediction>
+    <fieldset>
+      <legend>Что алгоритм должен сделать дальше?</legend>
+      <div class="algorithm-lab__prediction-options">
+        <button type="button" data-window-predict="expand" aria-pressed="false">Расширить справа</button>
+        <button type="button" data-window-predict="shrink" aria-pressed="false">Сжать слева</button>
+      </div>
+    </fieldset>
+    <p class="algorithm-lab__feedback" data-lab-feedback aria-live="polite">Сначала выберите действие, затем откройте следующий шаг.</p>
+  </div>
+
+  <p class="algorithm-lab__explanation" data-lab-explanation aria-live="polite">
+    Окно допустимо, а справа ещё есть элементы. Можно проверить более длинный участок.
+  </p>
+
+  <div class="algorithm-lab__controls">
+    <button class="button button--secondary" type="button" data-lab-previous disabled>Предыдущий</button>
+    <button class="button button--primary" type="button" data-lab-next disabled>Следующий</button>
+    <button class="text-button" type="button" data-lab-reset>Сбросить</button>
+  </div>
+</section>
+
+<script>
+  import type { SlidingWindowAction, SlidingWindowTrace } from '../lib/labs/sliding-window';
+
+  document.querySelectorAll<HTMLElement>('[data-sliding-window-lab]').forEach((lab) => {
+    if (lab.dataset.labReady === 'true') return;
+    lab.dataset.labReady = 'true';
+    const trace = JSON.parse(lab.dataset.trace ?? '') as SlidingWindowTrace;
+    const cells = [...lab.querySelectorAll<HTMLElement>('[data-window-cell]')];
+    const prediction = lab.querySelector<HTMLElement>('[data-lab-prediction]');
+    const predictors = [...lab.querySelectorAll<HTMLButtonElement>('[data-window-predict]')];
+    const feedback = lab.querySelector<HTMLElement>('[data-lab-feedback]');
+    const explanation = lab.querySelector<HTMLElement>('[data-lab-explanation]');
+    const previous = lab.querySelector<HTMLButtonElement>('[data-lab-previous]');
+    const next = lab.querySelector<HTMLButtonElement>('[data-lab-next]');
+    const stepLabel = lab.querySelector<HTMLElement>('[data-lab-step]');
+    const boundsOutput = lab.querySelector<HTMLElement>('[data-window-bounds]');
+    const sumOutput = lab.querySelector<HTMLElement>('[data-window-sum]');
+    const bestOutput = lab.querySelector<HTMLElement>('[data-window-best]');
+    const operationOutput = lab.querySelector<HTMLElement>('[data-window-operation]');
+    let position = 0;
+    let revealed = false;
+
+    const clearPrediction = () => {
+      revealed = false;
+      predictors.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+      if (feedback) {
+        feedback.textContent = 'Сначала выберите действие, затем откройте следующий шаг.';
+        delete feedback.dataset.feedbackState;
+      }
+    };
+
+    const render = () => {
+      const step = trace.steps[position];
+      const isResult = position >= trace.steps.length;
+      if (stepLabel) stepLabel.textContent = isResult
+        ? `Итог · ${trace.steps.length + 1} / ${trace.steps.length + 1}`
+        : `Шаг ${position + 1} / ${trace.steps.length + 1}`;
+
+      cells.forEach((cell) => {
+        const index = Number(cell.dataset.windowCell);
+        const pointers = cell.querySelector<HTMLElement>('[data-cell-pointers]');
+        if (pointers) pointers.replaceChildren();
+        const visibleBest = isResult ? trace.best : step?.best;
+        const inBest = visibleBest && index >= visibleBest.left && index <= visibleBest.right;
+        cell.dataset.best = String(Boolean(inBest));
+        if (isResult) {
+          cell.dataset.cellState = inBest ? 'pair' : 'outside';
+          return;
+        }
+        if (!step) return;
+        const active = step.left <= step.right && index >= step.left && index <= step.right;
+        cell.dataset.cellState = active ? 'active' : 'outside';
+        if (pointers && index === step.left && step.left <= step.right) {
+          const label = document.createElement('span');
+          label.textContent = 'left';
+          pointers.append(label);
+        }
+        if (pointers && index === step.right && step.left <= step.right) {
+          const label = document.createElement('span');
+          label.textContent = 'right';
+          pointers.append(label);
+        }
+      });
+
+      if (isResult) {
+        const best = trace.best;
+        if (boundsOutput) boundsOutput.textContent = best ? `[${best.left}, ${best.right}]` : 'пусто';
+        if (sumOutput) sumOutput.textContent = best ? `${best.sum} ≤ ${trace.maxSum}` : 'нет окна';
+        if (bestOutput) bestOutput.textContent = best ? `длина ${best.length}` : 'длина 0';
+        if (operationOutput) operationOutput.textContent = 'Трассировка завершена.';
+        if (explanation) explanation.textContent = best
+          ? `Лучший допустимый участок — индексы [${best.left}, ${best.right}], длина ${best.length}, сумма ${best.sum}. Правую границу мы двигали только вперёд, а левую — только при нарушении условия.`
+          : 'Массив пуст, поэтому допустимый участок имеет длину 0.';
+        if (prediction) prediction.hidden = true;
+      } else if (step) {
+        if (boundsOutput) boundsOutput.textContent = step.left <= step.right ? `[${step.left}, ${step.right}]` : 'пустое окно';
+        if (sumOutput) sumOutput.textContent = `${step.sum} ${step.valid ? '≤' : '>'} ${trace.maxSum}`;
+        if (bestOutput) bestOutput.textContent = `длина ${step.bestLength}`;
+        const changedValue = trace.values[step.changedIndex];
+        if (operationOutput) operationOutput.textContent = step.operation === 'expand'
+          ? `Последняя операция: добавили значение ${changedValue} справа.`
+          : `Последняя операция: убрали значение ${changedValue} слева.`;
+        if (prediction) prediction.hidden = step.nextAction === 'complete';
+        if (explanation) explanation.textContent = step.nextAction === 'shrink'
+          ? 'Сумма нарушает условие. При неотрицательных числах исправить окно можно только сжатием слева.'
+          : step.nextAction === 'expand'
+            ? 'Окно допустимо, а справа ещё есть элементы. Можно проверить более длинный участок.'
+            : 'Справа больше нет элементов, а текущее окно допустимо. Осталось зафиксировать итог.';
+      }
+
+      if (previous) previous.disabled = position === 0;
+      if (next) {
+        next.disabled = isResult || (step?.nextAction !== 'complete' && !revealed);
+        next.textContent = position === trace.steps.length - 1 ? 'Показать итог' : 'Следующий';
+      }
+    };
+
+    predictors.forEach((button) => button.addEventListener('click', () => {
+      const step = trace.steps[position];
+      if (!step || step.nextAction === 'complete') return;
+      const predicted = button.dataset.windowPredict as SlidingWindowAction;
+      const correct = predicted === step.nextAction;
+      revealed = true;
+      predictors.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+      if (feedback) {
+        const reason = step.nextAction === 'shrink'
+          ? 'Сумма выше лимита, поэтому сначала нужно восстановить допустимость сжатием слева.'
+          : 'Окно допустимо, поэтому следующий правый элемент можно добавить и проверить.';
+        feedback.textContent = correct ? `Верно. ${reason}` : `Этот ход не сохраняет логику окна. ${reason}`;
+        feedback.dataset.feedbackState = correct ? 'correct' : 'incorrect';
+      }
+      if (next) next.disabled = false;
+    }));
+    previous?.addEventListener('click', () => {
+      position = Math.max(0, position - 1);
+      clearPrediction();
+      render();
+    });
+    next?.addEventListener('click', () => {
+      position = Math.min(trace.steps.length, position + 1);
+      clearPrediction();
+      render();
+    });
+    lab.querySelector<HTMLButtonElement>('[data-lab-reset]')?.addEventListener('click', () => {
+      position = 0;
+      clearPrediction();
+      render();
+      predictors[0]?.focus();
+    });
+    render();
+  });
+</script>

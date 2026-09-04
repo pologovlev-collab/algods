@@ -7,6 +7,8 @@ import LanguageSwitch from '../../components/LanguageSwitch.astro';
 import LearningBlocks from '../../components/LearningBlocks.astro';
 import LessonPractice from '../../components/LessonPractice.astro';
 import LessonProgress from '../../components/LessonProgress.astro';
+import SlidingWindowLab from '../../components/SlidingWindowLab.astro';
+import TwoPointersLab from '../../components/TwoPointersLab.astro';
 import { patterns } from '../../data/patterns';
 import { practiceTasks } from '../../data/practice';
 import { stages } from '../../data/stages';
@@ -72,6 +74,8 @@ const title = `${entry.data.title} — AlgoDS`;
       {(entry.data.slug === 'binary-search-invariant' || entry.data.slug === 'binary-search-boundaries') && (
         <BinarySearchLab />
       )}
+      {entry.data.slug === 'opposite-two-pointers' && <TwoPointersLab />}
+      {entry.data.slug === 'variable-sliding-window' && <SlidingWindowLab />}
 
       <LessonProgress lessonId={entry.data.id} prerequisites={entry.data.prerequisites} />
       <LessonPractice problems={mappedProblems} />
