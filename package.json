@@ -15,6 +15,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:smoke": "npm run build && playwright test --grep @smoke",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:examples": "node scripts/validate-content.mjs --check-code",
     "validate:links": "node scripts/validate-links.mjs",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@playwright/test": "1.62.1",
     "@typescript-eslint/parser": "8.67.0",
     "eslint": "10.8.1",
     "eslint-plugin-astro": "3.1.0",
