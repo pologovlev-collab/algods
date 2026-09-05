@@ -34,7 +34,9 @@ const providerCounts = providers.map((provider) => ({
     ))}
   </dl>
 
-  <form class="practice-filters" data-practice-filters aria-label="Фильтры задач">
+  <details class="practice-filter-panel" data-practice-filter-panel open>
+    <summary><span>Фильтры задач</span><small>9 параметров</small></summary>
+    <form class="practice-filters" data-practice-filters aria-label="Фильтры задач">
     <label>
       <span>Поиск</span>
       <input type="search" placeholder="Название, ID или тема" data-filter-query />
@@ -99,7 +101,8 @@ const providerCounts = providers.map((provider) => ({
         <option value="revisit">Только повторить</option>
       </select>
     </label>
-  </form>
+    </form>
+  </details>
 
   <p class="filter-result" aria-live="polite"><strong data-filter-count>{tasks.length}</strong> задач показано</p>
 
@@ -156,3 +159,15 @@ const providerCounts = providers.map((provider) => ({
     </div>
   </section>
 </div>
+
+<script>
+  const mobileFilterQuery = window.matchMedia('(max-width: 36rem)');
+  const filterPanel = document.querySelector<HTMLDetailsElement>('[data-practice-filter-panel]');
+
+  const syncFilterPanel = ({ matches }: MediaQueryList | MediaQueryListEvent) => {
+    filterPanel?.toggleAttribute('open', !matches);
+  };
+
+  syncFilterPanel(mobileFilterQuery);
+  mobileFilterQuery.addEventListener('change', syncFilterPanel);
+</script>

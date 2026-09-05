@@ -74,9 +74,8 @@ const title = `${entry.data.title} — AlgoDS`;
       </div>
       <LearningBlocks blocks={entry.data.learningBlocks ?? []} placement="after-content" />
 
-      {(entry.data.slug === 'binary-search-invariant' || entry.data.slug === 'binary-search-boundaries') && (
-        <BinarySearchLab />
-      )}
+      {entry.data.slug === 'binary-search-invariant' && <BinarySearchLab mode="exact" />}
+      {entry.data.slug === 'binary-search-boundaries' && <BinarySearchLab mode="lower-bound" />}
       {entry.data.slug === 'opposite-two-pointers' && <TwoPointersLab />}
       {entry.data.slug === 'variable-sliding-window' && <SlidingWindowLab />}
       {entry.data.slug === 'linked-list-relinking' && <LinkedListReversalLab />}

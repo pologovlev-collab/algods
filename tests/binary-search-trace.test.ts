@@ -1,10 +1,63 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createExactSearchTrace,
   createLowerBoundTrace,
+  getExactSearchTraceFrame,
+  getExactSearchTraceFrames,
   getLowerBoundTraceFrame,
   getLowerBoundTraceFrames,
 } from '../src/lib/binary-search-trace';
+
+describe('exact-search teaching trace', () => {
+  it('uses an inclusive interval and stops on an exact match', () => {
+    expect(createExactSearchTrace([1, 3, 3, 6, 8, 11, 14, 19], 11)).toEqual({
+      values: [1, 3, 3, 6, 8, 11, 14, 19],
+      target: 11,
+      steps: [
+        { lo: 0, hi: 7, mid: 3, midValue: 6, decision: 'move-right' },
+        { lo: 4, hi: 7, mid: 5, midValue: 11, decision: 'found' },
+      ],
+      resultIndex: 5,
+      found: true,
+    });
+  });
+
+  it('returns -1 only after the inclusive candidate interval becomes empty', () => {
+    const trace = createExactSearchTrace([1, 3, 5, 7], 6);
+
+    expect(trace.steps.at(-1)).toEqual({
+      lo: 3,
+      hi: 3,
+      mid: 3,
+      midValue: 7,
+      decision: 'move-left',
+    });
+    expect(trace.resultIndex).toBe(-1);
+    expect(trace.found).toBe(false);
+  });
+
+  it('keeps the current midpoint visible before highlighting only the final answer', () => {
+    const trace = createExactSearchTrace([1, 3, 3, 6, 8, 11, 14, 19], 11);
+    const decision = getExactSearchTraceFrame(trace, 1);
+    const frames = getExactSearchTraceFrames(trace);
+
+    expect(decision).toMatchObject({
+      kind: 'decision',
+      lo: 4,
+      hi: 7,
+      mid: 5,
+      decision: 'found',
+      cellStates: ['discarded', 'discarded', 'discarded', 'discarded', 'candidate', 'mid', 'candidate', 'candidate'],
+    });
+    expect(frames.at(-1)).toEqual({
+      kind: 'result',
+      resultIndex: 5,
+      found: true,
+      cellStates: ['discarded', 'discarded', 'discarded', 'discarded', 'discarded', 'result', 'discarded', 'discarded'],
+    });
+  });
+});
 
 describe('lower-bound teaching trace', () => {
   it('shows how duplicates keep the left half in play', () => {

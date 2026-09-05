@@ -1142,7 +1142,7 @@ pre {
 }
 
 .language-switch button {
-  min-height: 2.4rem;
+  min-height: 2.75rem;
   padding-inline: 0.8rem;
   border-color: transparent;
   border-radius: calc(var(--radius-sm) - 0.1rem);
@@ -1649,6 +1649,10 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
   gap: 0.8rem;
   margin-bottom: 1rem;
+}
+
+.practice-filter-panel > summary {
+  display: none;
 }
 
 .practice-provider-summary {
@@ -2441,6 +2445,10 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   gap: 0.55rem;
 }
 
+.binary-lab__controls button {
+  min-height: 2.75rem;
+}
+
 @media (max-width: 64rem) {
   .course-layout,
   .lesson-shell {
@@ -2576,6 +2584,42 @@ html[data-code-language='python'] [data-code-language='cpp'] {
 
   .lesson-practice li {
     grid-template-columns: 1fr;
+  }
+
+  .practice-filter-panel {
+    margin-bottom: 1rem;
+    border-block: 1px solid var(--line-strong);
+  }
+
+  .practice-filter-panel > summary {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--ink);
+    cursor: pointer;
+    font-weight: 750;
+  }
+
+  .practice-filter-panel > summary small {
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    font-weight: 650;
+  }
+
+  .practice-filter-panel:not([open]) > .practice-filters {
+    display: none;
+  }
+
+  .practice-filter-panel[open] > .practice-filters {
+    padding-block: 0.75rem 1rem;
+  }
+
+  .task-note summary {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
   }
 
   .progress-summary div,
