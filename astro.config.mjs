@@ -1,7 +1,7 @@
 import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
 import { defineConfig } from 'astro/config';
-import { defineMdastPlugin } from 'satteri';
+import { defineHastPlugin, defineMdastPlugin } from 'satteri';
 
 const prebundleContentDependencies = {
   name: 'algods-prebundle-content-dependencies',
@@ -26,6 +26,26 @@ const removeLeadingMarkdownTitle = defineMdastPlugin({
   },
 });
 
+const wrapMarkdownTables = defineHastPlugin({
+  name: 'algods-wrap-markdown-tables',
+  element: {
+    filter: ['table'],
+    visit(node, context) {
+      context.wrapNode(node, {
+        type: 'element',
+        tagName: 'div',
+        properties: {
+          className: ['content-table-scroll'],
+          role: 'region',
+          tabIndex: 0,
+          ariaLabel: 'Прокручиваемая таблица',
+        },
+        children: [],
+      });
+    },
+  },
+});
+
 export default defineConfig({
   site: 'https://algods.ru',
   output: 'static',
@@ -34,7 +54,10 @@ export default defineConfig({
     format: 'directory',
   },
   markdown: {
-    processor: satteri({ mdastPlugins: [removeLeadingMarkdownTitle] }),
+    processor: satteri({
+      mdastPlugins: [removeLeadingMarkdownTitle],
+      hastPlugins: [wrapMarkdownTables],
+    }),
   },
   vite: {
     plugins: [prebundleContentDependencies],

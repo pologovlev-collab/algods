@@ -158,6 +158,21 @@ pre {
   border-radius: var(--radius-md);
 }
 
+.content-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.content-table-scroll:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.content-table-scroll > table {
+  min-width: 100%;
+}
+
 .shell {
   width: min(100% - 2rem, var(--content-width));
   margin-inline: auto;

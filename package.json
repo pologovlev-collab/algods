@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:e2e": "npm run build && playwright test",
     "test:e2e:smoke": "npm run build && playwright test --grep @smoke",
+    "test:layout": "npm run build && playwright test e2e/layout.spec.ts",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:examples": "node scripts/validate-content.mjs --check-code",
     "validate:links": "node scripts/validate-links.mjs",
