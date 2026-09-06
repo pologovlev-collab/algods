@@ -160,13 +160,21 @@ test('dark theme and reduced motion keep representative interactive pages consol
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
 
   for (const path of [
+    '/',
     '/roadmap/',
     '/practice/',
+    '/reference/',
     '/course/tree-model-and-traversals/',
     '/course/dp-tabulation-and-order/',
   ]) {
     await page.goto(path);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    if (path === '/') {
+      const search = page.locator('[data-global-search]');
+      await search.locator('summary').click();
+      await search.locator('[data-global-search-input]').fill('heap');
+      await expect(search.locator('[data-global-search-results] a').first()).toBeVisible();
+    }
     const motion = await page.evaluate(() => {
       const labChild = document.querySelector<HTMLElement>('.algorithm-lab button');
       const roadmapStage = document.querySelector<HTMLElement>('.learning-landscape__stage');
