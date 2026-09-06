@@ -1,0 +1,37 @@
+---
+import type { KnowledgeMapStageNode } from '../lib/knowledge-map';
+
+interface Props {
+  stage: KnowledgeMapStageNode;
+  stages: KnowledgeMapStageNode[];
+}
+
+const { stage, stages } = Astro.props;
+const stageById = new Map(stages.map((candidate) => [candidate.id, candidate]));
+const stageNumber = (id: number) => String(id).padStart(2, '0');
+const stageLabels = (ids: number[]) => ids
+  .map((id) => {
+    const relatedStage = stageById.get(id);
+    return relatedStage ? `${stageNumber(id)} · ${relatedStage.title}` : stageNumber(id);
+  })
+  .join('; ');
+---
+
+<dl class="learning-landscape__relations">
+  <div>
+    <dt>Опирается на</dt>
+    <dd>
+      {stage.prerequisiteStageIds.length > 0
+        ? stageLabels(stage.prerequisiteStageIds)
+        : 'старт курса'}
+    </dd>
+  </div>
+  <div>
+    <dt>Открывает</dt>
+    <dd>
+      {stage.unlockStageIds.length > 0
+        ? stageLabels(stage.unlockStageIds)
+        : 'итог курса'}
+    </dd>
+  </div>
+</dl>

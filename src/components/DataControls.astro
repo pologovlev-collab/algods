@@ -1,0 +1,34 @@
+<section class="data-controls" aria-labelledby="data-controls-title">
+  <div>
+    <p class="eyebrow">Только в этом браузере</p>
+    <h2 id="data-controls-title">Ваш прогресс принадлежит вам</h2>
+    <p>
+      AlgoDS не требует аккаунта. Экспортируйте JSON для резервной копии или переноса на
+      другое устройство.
+    </p>
+  </div>
+  <div class="data-controls__actions">
+    <button class="button button--secondary" type="button" data-export-progress>
+      Экспортировать
+    </button>
+    <label class="button button--secondary file-button">
+      Импортировать
+      <input type="file" accept="application/json,.json" data-import-progress />
+    </label>
+    <button class="text-button text-button--danger" type="button" data-reset-open>
+      Сбросить прогресс
+    </button>
+  </div>
+  <p class="state-message" data-state-message role="status" aria-live="polite"></p>
+</section>
+
+<dialog class="reset-dialog" data-reset-dialog aria-labelledby="reset-title">
+  <h2 id="reset-title">Сбросить локальный прогресс?</h2>
+  <p>Уроки, статусы задач, закладки, календарь и локальные настройки будут удалены из этого браузера.</p>
+  <div class="reset-dialog__actions">
+    <button class="button button--secondary" type="button" data-reset-cancel>Отмена</button>
+    <button class="button button--danger" type="button" data-reset-confirm>
+      Сбросить без восстановления
+    </button>
+  </div>
+</dialog>

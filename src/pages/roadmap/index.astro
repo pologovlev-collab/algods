@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import KnowledgeMap from '../../components/KnowledgeMap.astro';
+import { knowledgeMapGroups } from '../../data/knowledge-map-groups';
+import { practiceTasks } from '../../data/practice';
+import { stages } from '../../data/stages';
+import { orderCourseLessons } from '../../lib/course';
+import { buildKnowledgeMap, buildKnowledgeMapGroups } from '../../lib/knowledge-map';
+import { orderPracticeTasks } from '../../lib/practice';
+import '../../styles/knowledge-map.css';
+
+const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data));
+const map = buildKnowledgeMap(stages, lessons);
+const groups = buildKnowledgeMapGroups(map, knowledgeMapGroups);
+const practiceByStage = Object.fromEntries(map.stages.map((stage) => [
+  stage.id,
+  orderPracticeTasks(practiceTasks.filter((task) => task.stage === stage.id)).slice(0, 2),
+]));
+---
+
+<BaseLayout title="Карта знаний — AlgoDS" description="Зависимости между темами курса и состояние каждого урока.">
+  <header class="page-intro page-intro--roadmap shell">
+    <p class="eyebrow">Зависимости вместо случайного порядка</p>
+    <h1>Карта знаний</h1>
+    <p>
+      Семь смысловых областей показывают форму учебного маршрута. Точные зависимости
+      не спрятаны: они открываются вместе с описанием выбранного этапа.
+    </p>
+    <nav class="page-context-links" aria-label="Связанные разделы карты">
+      <a href="/course/">Открыть последовательный курс</a>
+      <a href="/reference/">Перейти к справочнику</a>
+    </nav>
+  </header>
+
+  <div class="shell">
+    <KnowledgeMap map={map} groups={groups} lessons={lessons} practiceByStage={practiceByStage} />
+  </div>
+</BaseLayout>

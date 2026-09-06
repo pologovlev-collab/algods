@@ -1,0 +1,18 @@
+---
+interface Props {
+  problemId: string;
+  title: string;
+}
+
+const { problemId, title } = Astro.props;
+---
+
+<label class="problem-status">
+  <span class="sr-only">Статус задачи {title}</span>
+  <select data-problem-status={problemId} aria-label={`Статус задачи ${title}`}>
+    <option value="not-started">Не начата</option>
+    <option value="solved-independent">Решена самостоятельно</option>
+    <option value="solved-with-help">Решена с подсказкой</option>
+    <option value="revisit">Повторить</option>
+  </select>
+</label>

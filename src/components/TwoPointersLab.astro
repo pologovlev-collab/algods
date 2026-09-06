@@ -1,0 +1,190 @@
+---
+import { createTwoPointersTrace } from '../lib/labs/two-pointers';
+import '../styles/algorithm-labs.css';
+
+const trace = createTwoPointersTrace([2, 5, 7, 12], 19);
+---
+
+<section
+  class="algorithm-lab"
+  data-two-pointers-lab
+  data-trace={JSON.stringify(trace)}
+  aria-labelledby="two-pointers-lab-title"
+>
+  <header class="algorithm-lab__header">
+    <p class="eyebrow">Интерактивная лаборатория</p>
+    <h2 id="two-pointers-lab-title">Какую границу можно отбросить?</h2>
+    <p>Найдите пару с суммой <code>19</code>. Перед каждым сдвигом сначала предскажите, какой указатель сохраняет шанс на ответ.</p>
+  </header>
+
+  <div class="algorithm-lab__progress">
+    <span data-lab-step>Шаг 1</span>
+    <span>Цель: <strong>19</strong></span>
+  </div>
+
+  <div class="algorithm-lab__array-wrap" tabindex="0" aria-label="Отсортированный массив с указателями">
+    <ol class="algorithm-lab__array" style={`--lab-cell-count: ${trace.values.length}`}>
+      {trace.values.map((value, index) => (
+        <li data-two-cell={index}>
+          <span class="algorithm-lab__pointers" data-cell-pointers aria-hidden="true"></span>
+          <strong>{value}</strong>
+          <small>индекс {index}</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <dl class="algorithm-lab__state">
+    <div><dt>Левая граница</dt><dd data-two-left>left = 0</dd></div>
+    <div><dt>Сумма</dt><dd data-two-sum>2 + 12 = 14</dd></div>
+    <div><dt>Правая граница</dt><dd data-two-right>right = 3</dd></div>
+  </dl>
+
+  <div class="algorithm-lab__prediction" data-lab-prediction>
+    <fieldset>
+      <legend>Какой указатель нужно сдвинуть?</legend>
+      <div class="algorithm-lab__prediction-options">
+        <button type="button" data-two-predict="move-left" aria-pressed="false">Сдвинуть left вправо</button>
+        <button type="button" data-two-predict="move-right" aria-pressed="false">Сдвинуть right влево</button>
+      </div>
+    </fieldset>
+    <p class="algorithm-lab__feedback" data-lab-feedback aria-live="polite">Сначала выберите ход, затем откройте следующий шаг.</p>
+  </div>
+
+  <p class="algorithm-lab__explanation" data-lab-explanation aria-live="polite">
+    Сумма меньше цели. Подумайте, какая граница может сделать её больше.
+  </p>
+
+  <div class="algorithm-lab__controls">
+    <button class="button button--secondary" type="button" data-lab-previous disabled>Предыдущий</button>
+    <button class="button button--primary" type="button" data-lab-next disabled>Следующий</button>
+    <button class="text-button" type="button" data-lab-reset>Сбросить</button>
+  </div>
+</section>
+
+<script>
+  import type { TwoPointersAction, TwoPointersTrace } from '../lib/labs/two-pointers';
+
+  document.querySelectorAll<HTMLElement>('[data-two-pointers-lab]').forEach((lab) => {
+    if (lab.dataset.labReady === 'true') return;
+    lab.dataset.labReady = 'true';
+    const trace = JSON.parse(lab.dataset.trace ?? '') as TwoPointersTrace;
+    const cells = [...lab.querySelectorAll<HTMLElement>('[data-two-cell]')];
+    const prediction = lab.querySelector<HTMLElement>('[data-lab-prediction]');
+    const predictors = [...lab.querySelectorAll<HTMLButtonElement>('[data-two-predict]')];
+    const feedback = lab.querySelector<HTMLElement>('[data-lab-feedback]');
+    const explanation = lab.querySelector<HTMLElement>('[data-lab-explanation]');
+    const previous = lab.querySelector<HTMLButtonElement>('[data-lab-previous]');
+    const next = lab.querySelector<HTMLButtonElement>('[data-lab-next]');
+    const stepLabel = lab.querySelector<HTMLElement>('[data-lab-step]');
+    const leftOutput = lab.querySelector<HTMLElement>('[data-two-left]');
+    const rightOutput = lab.querySelector<HTMLElement>('[data-two-right]');
+    const sumOutput = lab.querySelector<HTMLElement>('[data-two-sum]');
+    let position = 0;
+    let revealed = false;
+
+    const decisionReason = (action: TwoPointersAction) => action === 'move-left'
+      ? 'Сумма мала. Даже самый большой партнёр не помог текущему left, поэтому left можно безопасно исключить.'
+      : 'Сумма велика. Даже самый маленький партнёр не помог текущему right, поэтому right можно безопасно исключить.';
+
+    const clearPrediction = () => {
+      revealed = false;
+      predictors.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+      if (feedback) {
+        feedback.textContent = 'Сначала выберите ход, затем откройте следующий шаг.';
+        delete feedback.dataset.feedbackState;
+      }
+    };
+
+    const render = () => {
+      const step = trace.steps[position];
+      const isResult = position >= trace.steps.length;
+      if (stepLabel) stepLabel.textContent = isResult
+        ? `Итог · ${trace.steps.length + 1} / ${trace.steps.length + 1}`
+        : `Шаг ${position + 1} / ${trace.steps.length + 1}`;
+
+      cells.forEach((cell) => {
+        const index = Number(cell.dataset.twoCell);
+        const pointers = cell.querySelector<HTMLElement>('[data-cell-pointers]');
+        if (pointers) pointers.replaceChildren();
+        if (isResult) {
+          const isPair = trace.pair && (index === trace.pair.left || index === trace.pair.right);
+          cell.dataset.cellState = isPair ? 'pair' : 'discarded';
+          return;
+        }
+        if (!step) return;
+        cell.dataset.cellState = index < step.left || index > step.right ? 'discarded' : 'candidate';
+        if (index === step.left || index === step.right) cell.dataset.cellState = step.action === 'found' ? 'pair' : 'boundary';
+        if (pointers && index === step.left) {
+          const label = document.createElement('span');
+          label.textContent = 'left';
+          pointers.append(label);
+        }
+        if (pointers && index === step.right) {
+          const label = document.createElement('span');
+          label.textContent = 'right';
+          pointers.append(label);
+        }
+      });
+
+      if (isResult) {
+        if (leftOutput) leftOutput.textContent = trace.pair ? `left = ${trace.pair.left}` : 'left ≥ right';
+        if (rightOutput) rightOutput.textContent = trace.pair ? `right = ${trace.pair.right}` : 'Диапазон пуст';
+        if (sumOutput) sumOutput.textContent = trace.found ? `Найдена сумма ${trace.target}` : 'Пары нет';
+        if (explanation) explanation.textContent = trace.pair
+          ? `Ответ найден: ${trace.values[trace.pair.left]} + ${trace.values[trace.pair.right]} = ${trace.target}. Каждая отброшенная граница была исключена доказанно.`
+          : `Указатели встретились. В оставшемся диапазоне нет двух разных индексов, поэтому пары с суммой ${trace.target} не существует.`;
+        if (prediction) prediction.hidden = true;
+      } else if (step) {
+        if (leftOutput) leftOutput.textContent = `left = ${step.left} → ${step.leftValue}`;
+        if (rightOutput) rightOutput.textContent = `right = ${step.right} → ${step.rightValue}`;
+        if (sumOutput) sumOutput.textContent = `${step.leftValue} + ${step.rightValue} = ${step.sum}`;
+        if (prediction) prediction.hidden = step.action === 'found';
+        if (explanation) explanation.textContent = step.action === 'found'
+          ? `Сумма совпала с целью. Пара найдена на индексах ${step.left} и ${step.right}.`
+          : step.sum < trace.target
+            ? 'Сумма меньше цели. Подумайте, какая граница может сделать её больше.'
+            : 'Сумма больше цели. Подумайте, какая граница может сделать её меньше.';
+      }
+
+      if (previous) previous.disabled = position === 0;
+      if (next) {
+        next.disabled = isResult || (step?.action !== 'found' && !revealed);
+        next.textContent = position === trace.steps.length - 1 ? 'Показать итог' : 'Следующий';
+      }
+    };
+
+    predictors.forEach((button) => button.addEventListener('click', () => {
+      const step = trace.steps[position];
+      if (!step || step.action === 'found') return;
+      const predicted = button.dataset.twoPredict as TwoPointersAction;
+      const correct = predicted === step.action;
+      revealed = true;
+      predictors.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+      if (feedback) {
+        feedback.textContent = correct
+          ? `Верно. ${decisionReason(step.action)}`
+          : `Этот ход меняет сумму в неверную сторону. ${decisionReason(step.action)}`;
+        feedback.dataset.feedbackState = correct ? 'correct' : 'incorrect';
+      }
+      if (next) next.disabled = false;
+    }));
+    previous?.addEventListener('click', () => {
+      position = Math.max(0, position - 1);
+      clearPrediction();
+      render();
+    });
+    next?.addEventListener('click', () => {
+      position = Math.min(trace.steps.length, position + 1);
+      clearPrediction();
+      render();
+    });
+    lab.querySelector<HTMLButtonElement>('[data-lab-reset]')?.addEventListener('click', () => {
+      position = 0;
+      clearPrediction();
+      render();
+      predictors[0]?.focus();
+    });
+    render();
+  });
+</script>

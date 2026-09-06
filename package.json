@@ -1,0 +1,44 @@
+{
+  "name": "algods",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.22.3 || ^24.16.0 || >=26.3.0",
+    "npm": ">=9.6.5"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check --minimumFailingSeverity error",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:smoke": "npm run build && playwright test --grep @smoke",
+    "test:layout": "npm run build && playwright test e2e/layout.spec.ts",
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:examples": "node scripts/validate-content.mjs --check-code",
+    "validate:links": "node scripts/validate-links.mjs",
+    "verify": "npm run check && npm run lint && npm run test && npm run validate:content && npm run validate:examples && npm run build && npm run validate:links"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.3",
+    "astro": "7.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@astrojs/markdown-satteri": "0.3.7",
+    "@playwright/test": "1.62.1",
+    "@typescript-eslint/parser": "8.67.0",
+    "eslint": "10.8.1",
+    "eslint-plugin-astro": "3.1.0",
+    "globals": "17.11.0",
+    "satteri": "0.10.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0",
+    "vite": "8.2.1",
+    "vitest": "4.1.11"
+  }
+}

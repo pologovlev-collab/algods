@@ -1,0 +1,181 @@
+---
+import { getCollection } from 'astro:content';
+
+import {
+  PRACTICE_MODE_LABELS,
+  PRACTICE_NATIVE_LEVEL_LABELS,
+  PRACTICE_PROVIDER_LABELS,
+  PRACTICE_TIER_SHORT_LABELS,
+  PRACTICE_TIER_LABELS,
+} from '../data/practice';
+import { orderPracticeTasks, type PracticeTask } from '../lib/practice';
+import ProblemStatus from './ProblemStatus.astro';
+
+interface Props {
+  tasks: PracticeTask[];
+}
+
+const { tasks } = Astro.props;
+const lessonById = new Map((await getCollection('lessons')).map(({ data }) => [data.id, data]));
+const orderedTasks = orderPracticeTasks(tasks);
+const providers = [...new Set(tasks.map(({ provider }) => provider))];
+const topics = [...new Set(tasks.flatMap(({ topics }) => topics))].sort((left, right) =>
+  left.localeCompare(right, 'ru'));
+const stages = [...new Set(tasks.map(({ stage }) => stage))].sort((left, right) => left - right);
+const providerCounts = providers.map((provider) => ({
+  provider,
+  count: tasks.filter((task) => task.provider === provider).length,
+}));
+---
+
+<div class="practice-explorer" data-practice-explorer>
+  <dl class="practice-provider-summary" aria-label="Задачи по платформам">
+    <div><dt>Всего</dt><dd>{tasks.length}</dd></div>
+    {providerCounts.map(({ provider, count }) => (
+      <div><dt>{PRACTICE_PROVIDER_LABELS[provider]}</dt><dd>{count}</dd></div>
+    ))}
+  </dl>
+
+  <details class="practice-filter-panel" data-practice-filter-panel open>
+    <summary><span>Фильтры задач</span><small>9 параметров</small></summary>
+    <form class="practice-filters" data-practice-filters aria-label="Фильтры задач">
+    <label>
+      <span>Поиск</span>
+      <input type="search" placeholder="Название, ID или тема" data-filter-query />
+    </label>
+    <label>
+      <span>Платформа</span>
+      <select data-filter-provider>
+        <option value="all">Все платформы</option>
+        {providers.map((provider) => <option value={provider}>{PRACTICE_PROVIDER_LABELS[provider]}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Тема</span>
+      <select data-filter-topic>
+        <option value="all">Все темы</option>
+        {topics.map((topic) => <option value={topic}>{topic}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Этап</span>
+      <select data-filter-stage>
+        <option value="all">Все этапы</option>
+        {stages.map((stage) => <option value={stage}>Этап {stage}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Готовность</span>
+      <select data-filter-readiness>
+        <option value="all">Любая</option>
+        <option value="ready">Можно решать</option>
+        <option value="blocked">Нужны уроки</option>
+      </select>
+    </label>
+    <label>
+      <span>Уровень AlgoDS</span>
+      <select data-filter-tier>
+        <option value="all">Все уровни</option>
+        {Object.entries(PRACTICE_TIER_LABELS).map(([tier, label]) => <option value={tier}>{label}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Режим</span>
+      <select data-filter-mode>
+        <option value="all">Все режимы</option>
+        {Object.entries(PRACTICE_MODE_LABELS).map(([mode, label]) => <option value={mode}>{label}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Статус</span>
+      <select data-filter-status>
+        <option value="all">Все статусы</option>
+        <option value="not-started">Не начаты</option>
+        <option value="solved-independent">Решены самостоятельно</option>
+        <option value="solved-with-help">Решены с подсказкой</option>
+        <option value="revisit">Повторить</option>
+      </select>
+    </label>
+    <label>
+      <span>Повторение</span>
+      <select data-filter-revisit>
+        <option value="all">Все задачи</option>
+        <option value="revisit">Только повторить</option>
+      </select>
+    </label>
+    </form>
+  </details>
+
+  <p class="filter-result" aria-live="polite"><strong data-filter-count>{tasks.length}</strong> задач показано</p>
+
+  <section class="practice-group" data-practice-group aria-label="Все задачи">
+    <div class="table-scroll" tabindex="0" aria-label="Таблица задач разных платформ">
+      <table class="practice-table practice-table--master">
+        <thead>
+          <tr><th>Задача</th><th>Тема и режим</th><th>Уровни</th><th>Готовность</th><th>Статус</th></tr>
+        </thead>
+        <tbody>
+          {orderedTasks.map((task) => (
+            <tr
+              data-practice-row
+              data-problem-id={task.id}
+              data-provider={task.provider}
+              data-topics={task.topics.join('|')}
+              data-stage={task.stage}
+              data-tier={task.tier}
+              data-mode={task.mode}
+              data-problem-prerequisites={task.prerequisiteLessonIds.join(',')}
+              data-problem-readiness="blocked"
+              data-search-text={`${task.providerTaskId} ${task.providerSlug} ${task.title} ${task.topics.join(' ')} ${task.noteRu}`.toLocaleLowerCase('ru')}
+            >
+              <td>
+                <a href={task.url} target="_blank" rel="noopener noreferrer">
+                  {task.title}
+                </a>
+                <small>
+                  {PRACTICE_PROVIDER_LABELS[task.provider]}
+                  {task.provider !== 'codewars' && <> · ID {task.providerTaskId}</>}
+                  {' · '}проверено {task.verification.verifiedAt}
+                </small>
+                <details class="task-note"><summary>Учебная цель</summary><p>{task.noteRu}</p></details>
+              </td>
+              <td>
+                <strong>{task.topics[0]}</strong>
+                <small>{PRACTICE_MODE_LABELS[task.mode]}</small>
+              </td>
+              <td>
+                <span>
+                  {PRACTICE_NATIVE_LEVEL_LABELS[task.provider]}: {task.nativeLevel?.label ?? 'не указан'}
+                </span>
+                <small>Уровень AlgoDS: {PRACTICE_TIER_SHORT_LABELS[task.tier]}</small>
+              </td>
+              <td>
+                <a href={`/course/#stage-${task.stage}`}>Этап {task.stage}</a>
+                <small data-problem-readiness-label>Сначала завершите уроки-зависимости</small>
+                <small class="problem-prerequisites">
+                  После: {task.prerequisiteLessonIds.map((id, index) => {
+                    const lesson = lessonById.get(id);
+                    return lesson && <><a href={`/course/${lesson.slug}/`}>{lesson.title}</a>{index < task.prerequisiteLessonIds.length - 1 ? ', ' : ''}</>;
+                  })}
+                </small>
+              </td>
+              <td><ProblemStatus problemId={task.id} title={task.title} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  const mobileFilterQuery = window.matchMedia('(max-width: 36rem)');
+  const filterPanel = document.querySelector<HTMLDetailsElement>('[data-practice-filter-panel]');
+
+  const syncFilterPanel = ({ matches }: MediaQueryList | MediaQueryListEvent) => {
+    filterPanel?.toggleAttribute('open', !matches);
+  };
+
+  syncFilterPanel(mobileFilterQuery);
+  mobileFilterQuery.addEventListener('change', syncFilterPanel);
+</script>

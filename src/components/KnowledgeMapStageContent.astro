@@ -1,0 +1,46 @@
+---
+import {
+  PRACTICE_MODE_LABELS,
+  PRACTICE_PROVIDER_LABELS,
+  PRACTICE_TIER_LABELS,
+} from '../data/practice';
+import type {
+  KnowledgeMapLesson,
+  KnowledgeMapStageNode,
+} from '../lib/knowledge-map';
+import type { PracticeTask } from '../lib/practice';
+import KnowledgeMapLessonList from './KnowledgeMapLessonList.astro';
+import KnowledgeMapRelations from './KnowledgeMapRelations.astro';
+
+interface Props {
+  stage: KnowledgeMapStageNode;
+  stages: KnowledgeMapStageNode[];
+  lessons: KnowledgeMapLesson[];
+  practice: PracticeTask[];
+}
+
+const { stage, stages, lessons, practice } = Astro.props;
+---
+
+<KnowledgeMapRelations stage={stage} stages={stages} />
+
+{practice.length > 0 && (
+  <section class="learning-landscape__practice">
+    <h3>Практика для закрепления</h3>
+    <ul>
+      {practice.map((task) => (
+        <li>
+          <a href={task.url} target="_blank" rel="noopener noreferrer">
+            <strong>{task.title}</strong>
+            <span>{PRACTICE_PROVIDER_LABELS[task.provider]} · внешняя задача</span>
+            <small>{PRACTICE_MODE_LABELS[task.mode]} · {PRACTICE_TIER_LABELS[task.tier]}</small>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<a class="text-link" href={`/course/#stage-${stage.id}`}>Открыть этап в курсе <span aria-hidden="true">→</span></a>
+<h3 class="learning-landscape__lessons-title">Уроки этапа</h3>
+<KnowledgeMapLessonList lessonIds={stage.lessonIds} lessons={lessons} />

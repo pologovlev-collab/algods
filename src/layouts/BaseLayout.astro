@@ -1,0 +1,88 @@
+---
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { PROGRESS_STORAGE_KEY } from '../lib/progress-storage';
+import { THEME_STORAGE_KEY } from '../lib/theme';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const {
+  title = 'AlgoDS — курс по алгоритмам и структурам данных',
+  description = 'Русскоязычный курс, который учит распознавать алгоритмические паттерны, доказывать решения и уверенно проходить технические собеседования.',
+  noindex = false,
+} = Astro.props;
+
+const siteOrigin = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, siteOrigin);
+const socialImage = new URL('/og-image-v2.png', siteOrigin);
+---
+
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline define:vars={{ themeStorageKey: THEME_STORAGE_KEY, progressStorageKey: PROGRESS_STORAGE_KEY }}>
+      (() => {
+        try {
+          const storedTheme = localStorage.getItem(themeStorageKey);
+          const progress = JSON.parse(localStorage.getItem(progressStorageKey) ?? '{}');
+          const progressTheme = progress.theme === 'light' || progress.theme === 'dark'
+            ? progress.theme
+            : null;
+          const storedOrSystemTheme = storedTheme === 'light' || storedTheme === 'dark'
+            ? storedTheme
+            : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          const theme = progressTheme ?? storedOrSystemTheme;
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.codeLanguage = progress.language === 'python' ? 'python' : 'cpp';
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.dataset.codeLanguage = 'cpp';
+        }
+      })();
+    </script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon-v2.ico" sizes="any" />
+    <link rel="icon" href="/favicon-96x96-v2.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-v2.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="AlgoDS" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AlgoDS — алгоритмы, которые вы умеете объяснить" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Перейти к содержанию</a>
+    <Header currentPath={Astro.url.pathname} />
+    <p class="global-state-message" data-state-message role="status" aria-live="polite"></p>
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/learning-state';
+    </script>
+  </body>
+</html>

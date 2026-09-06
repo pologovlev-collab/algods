@@ -1,0 +1,59 @@
+---
+import { PRACTICE_TIER_LABELS } from '../data/practice';
+import { groupLeetCode75Tasks, type PracticeTask } from '../lib/practice';
+import ProblemStatus from './ProblemStatus.astro';
+
+interface Props {
+  tasks: PracticeTask[];
+}
+
+const { tasks } = Astro.props;
+const groups = groupLeetCode75Tasks(tasks);
+---
+
+<div class="leetcode-collection" data-leetcode-collection>
+  <nav class="collection-index" aria-label="Группы LeetCode 75">
+    <p>22 официальные группы</p>
+    <ol>
+      {groups.map((group) => (
+        <li><a href={`#lc75-group-${group.order}`}>{group.order}. {group.name}<span>{group.tasks.length}</span></a></li>
+      ))}
+    </ol>
+  </nav>
+
+  <div class="collection-groups">
+    {groups.map((group) => (
+      <section class="collection-group" id={`lc75-group-${group.order}`} aria-labelledby={`lc75-title-${group.order}`}>
+        <header>
+          <p>Группа {group.order} из {groups.length}</p>
+          <h2 id={`lc75-title-${group.order}`}>{group.name}</h2>
+          <span>{group.tasks.length} задач</span>
+        </header>
+        <ol class="collection-task-list">
+          {group.tasks.map((task) => {
+            const membership = task.collections.find(({ id }) => id === 'leetcode75');
+            return (
+              <li
+                data-problem-id={task.id}
+                data-problem-prerequisites={task.prerequisiteLessonIds.join(',')}
+                data-problem-readiness="blocked"
+              >
+                <span class="collection-task-order">{membership?.order}</span>
+                <div class="collection-task-main">
+                  <a href={task.url} target="_blank" rel="noopener noreferrer">{task.title}</a>
+                  <small>LeetCode {task.providerTaskId} · {task.nativeLevel?.label}</small>
+                </div>
+                <div class="collection-task-stage">
+                  <a href={`/course/#stage-${task.stage}`}>Этап {task.stage}</a>
+                  <small>{task.topics[0]} · {PRACTICE_TIER_LABELS[task.tier]}</small>
+                  <small data-problem-readiness-label>Сначала завершите уроки-зависимости</small>
+                </div>
+                <ProblemStatus problemId={task.id} title={task.title} />
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))}
+  </div>
+</div>

@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PracticeExplorer from '../../components/PracticeExplorer.astro';
+import { practiceTasks } from '../../data/practice';
+---
+
+<BaseLayout title="Практика — AlgoDS" description="Задачи с постепенным переходом от подсказок к самостоятельному решению.">
+  <header class="page-intro shell">
+    <p class="eyebrow">От понимания к переносу</p>
+    <h1>Задачи из разных источников</h1>
+    <p>
+      Единый каталог объединяет задачи разных платформ. Фильтруйте их по платформе,
+      этапу, режиму и статусу, а затем переходите от разбора к самостоятельному решению.
+    </p>
+    <p class="provider-purpose">
+      LeetCode — перенос интервью-паттернов, CodeRun — дисциплина алгоритмического контеста,
+      Codewars — короткие упражнения на беглость реализации.
+    </p>
+  </header>
+
+  <section class="practice-ladder shell" aria-labelledby="practice-ladder-title">
+    <h2 id="practice-ladder-title">Четыре уровня работы</h2>
+    <ol>
+      <li><strong>Проверка.</strong><span>Предскажите шаг, инвариант, сложность или крайний случай внутри урока.</span></li>
+      <li><strong>С разбором.</strong><span>Решите задачу с вопросами, которые удерживают ход рассуждения.</span></li>
+      <li><strong>Перенос паттерна.</strong><span>Название техники известно, но реализацию нужно вывести самостоятельно.</span></li>
+      <li><strong>Самостоятельно.</strong><span>Сначала назовите свойства задачи; паттерн спрятан до раскрытия.</span></li>
+    </ol>
+    <p>По умолчанию внутри этапа сначала растёт уровень задачи, а внутри каждого уровня уменьшается объём подсказок.</p>
+  </section>
+
+  <div class="shell section-block">
+    <PracticeExplorer tasks={practiceTasks} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,33 @@
+export const VERIFIED_CODEWARS_METADATA = [
+  ['54ba84be607a92aa900000f1', 'Isograms', 'isograms', '7 kyu'],
+  ['529eef7a9194e0cbc1000255', 'Anagram Detection', 'anagram-detection', '7 kyu'],
+  ['558fc85d8fd1938afb000014', 'Sum of two lowest positive integers', 'sum-of-two-lowest-positive-integers', '7 kyu'],
+  ['5656b6906de340bd1b0000ac', 'Two to One', 'two-to-one', '7 kyu'],
+  ['54da5a58ea159efa38000836', 'Find the odd int', 'find-the-odd-int', '6 kyu'],
+  ['54bf1c2cd5b56cc47f0007a1', 'Counting Duplicates', 'counting-duplicates', '6 kyu'],
+  ['54b42f9314d9229fd6000d9c', 'Duplicate Encoder', 'duplicate-encoder', '6 kyu'],
+  ['5277c8a221e209d3f6000b56', 'Valid Braces', 'valid-braces', '6 kyu'],
+  ['54e6533c92449cc251001667', 'Unique In Order', 'unique-in-order', '6 kyu'],
+  ['52597aa56021e91c93000cb0', 'Moving Zeros To The End', 'moving-zeros-to-the-end', '5 kyu'],
+  ['550f22f4d758534c1100025a', 'Directions Reduction', 'directions-reduction', '5 kyu'],
+  ['51ba717bb08c1cd60f00002f', 'Range Extraction', 'range-extraction', '4 kyu'],
+  ['521c2db8ddc89b9b7a0000c1', 'Snail', 'snail', '4 kyu'],
+  ['5324945e2ece5e1f32000370', 'Sum Strings as Numbers', 'sum-strings-as-numbers', '4 kyu'],
+] as const;
+
+export const VERIFIED_CODEWARS_DELIVERY_METADATA = [
+  ['54ba84be607a92aa900000f1', 'https://www.codewars.com/kata/54ba84be607a92aa900000f1', ['cpp', 'python']],
+  ['529eef7a9194e0cbc1000255', 'https://www.codewars.com/kata/529eef7a9194e0cbc1000255', ['cpp', 'python']],
+  ['558fc85d8fd1938afb000014', 'https://www.codewars.com/kata/558fc85d8fd1938afb000014', ['cpp', 'python']],
+  ['5656b6906de340bd1b0000ac', 'https://www.codewars.com/kata/5656b6906de340bd1b0000ac', ['cpp', 'python']],
+  ['54da5a58ea159efa38000836', 'https://www.codewars.com/kata/54da5a58ea159efa38000836', ['cpp', 'python']],
+  ['54bf1c2cd5b56cc47f0007a1', 'https://www.codewars.com/kata/54bf1c2cd5b56cc47f0007a1', ['cpp', 'python']],
+  ['54b42f9314d9229fd6000d9c', 'https://www.codewars.com/kata/54b42f9314d9229fd6000d9c', ['cpp', 'python']],
+  ['5277c8a221e209d3f6000b56', 'https://www.codewars.com/kata/5277c8a221e209d3f6000b56', ['cpp', 'python']],
+  ['54e6533c92449cc251001667', 'https://www.codewars.com/kata/54e6533c92449cc251001667', ['cpp', 'python']],
+  ['52597aa56021e91c93000cb0', 'https://www.codewars.com/kata/52597aa56021e91c93000cb0', ['cpp', 'python']],
+  ['550f22f4d758534c1100025a', 'https://www.codewars.com/kata/550f22f4d758534c1100025a', ['cpp', 'python']],
+  ['51ba717bb08c1cd60f00002f', 'https://www.codewars.com/kata/51ba717bb08c1cd60f00002f', ['cpp', 'python']],
+  ['521c2db8ddc89b9b7a0000c1', 'https://www.codewars.com/kata/521c2db8ddc89b9b7a0000c1', ['cpp', 'python']],
+  ['5324945e2ece5e1f32000370', 'https://www.codewars.com/kata/5324945e2ece5e1f32000370', ['cpp', 'python']],
+] as const;

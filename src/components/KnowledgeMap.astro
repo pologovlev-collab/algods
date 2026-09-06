@@ -1,0 +1,201 @@
+---
+import type {
+  KnowledgeMapGroup,
+  KnowledgeMapLesson,
+  KnowledgeMapModel,
+} from '../lib/knowledge-map';
+import { deriveKnowledgeMapState } from '../lib/knowledge-map';
+import type { PracticeTask } from '../lib/practice';
+import KnowledgeMapStageContent from './KnowledgeMapStageContent.astro';
+
+interface Props {
+  map: KnowledgeMapModel;
+  groups: KnowledgeMapGroup[];
+  lessons: KnowledgeMapLesson[];
+  practiceByStage: Record<number, PracticeTask[]>;
+}
+
+const { map, groups, lessons, practiceByStage } = Astro.props;
+const initialStageId = map.stages[0]?.id ?? 0;
+const initialState = deriveKnowledgeMapState(map, lessons, {});
+const payload = JSON.stringify({ map, lessons }).replaceAll('<', '\\u003c');
+const stageNumber = (id: number) => String(id).padStart(2, '0');
+const lessonCount = (count: number) => {
+  const finalDigit = count % 10;
+  const finalTwoDigits = count % 100;
+  const word = finalDigit === 1 && finalTwoDigits !== 11
+    ? 'урок'
+    : finalDigit >= 2 && finalDigit <= 4 && (finalTwoDigits < 12 || finalTwoDigits > 14)
+      ? 'урока'
+      : 'уроков';
+  return `${count} ${word}`;
+};
+const stateLabel = (stageId: number) => {
+  const state = initialState.stageStates[stageId] ?? 'blocked';
+  return state === 'completed'
+    ? 'Завершён'
+    : state === 'in-progress'
+      ? 'В процессе'
+      : state === 'ready'
+        ? 'Можно начать'
+        : 'Нужны зависимости';
+};
+---
+
+<section class="learning-landscape" data-knowledge-map aria-labelledby="knowledge-map-title">
+  <div class="learning-landscape__guide">
+    <div class="learning-landscape__intro">
+      <p class="eyebrow">Семь областей · один маршрут</p>
+      <h2 id="knowledge-map-title">Сначала найдите область, затем разберите точные связи</h2>
+      <p>
+        Обзор показывает смысловую структуру курса без паутины линий. Выберите этап —
+        в описании появятся его реальные зависимости, уроки и практика.
+      </p>
+    </div>
+    <dl class="learning-landscape__summary" aria-label="Прогресс по карте">
+      <div>
+        <dt>Завершено</dt>
+        <dd><strong data-map-progress-value>0 / {map.stages.length}</strong> этапов</dd>
+      </div>
+      <div>
+        <dt>Следующий шаг</dt>
+        <dd data-map-next-stage-title>{map.stages.find(({ id }) => id === initialState.nextStageId)?.title ?? 'Курс завершён'}</dd>
+      </div>
+    </dl>
+    <ul class="learning-landscape__legend" aria-label="Состояния этапов">
+      <li data-state="blocked">Нужны зависимости</li>
+      <li data-state="ready">Можно начать</li>
+      <li data-state="in-progress">В процессе</li>
+      <li data-state="completed">Завершён</li>
+    </ul>
+  </div>
+
+  <div class="learning-landscape__desktop">
+    <div class="learning-landscape__groups" aria-label="Области курса">
+      {groups.map((group, groupIndex) => (
+        <section class="learning-landscape__group" aria-labelledby={`map-group-${group.id}`}>
+          <header>
+            <p>Область {String(groupIndex + 1).padStart(2, '0')}</p>
+            <h3 id={`map-group-${group.id}`}>{group.title}</h3>
+            <span>{group.description}</span>
+          </header>
+          <ol>
+            {group.stages.map((stage) => {
+              const stageState = initialState.stageStates[stage.id] ?? 'blocked';
+              const isNext = stage.id === initialState.nextStageId;
+              return (
+                <li>
+                  <button
+                    class="learning-landscape__stage"
+                    type="button"
+                    data-map-stage-id={stage.id}
+                    data-map-stage-state={stageState}
+                    data-map-stage-next={String(isNext)}
+                    aria-controls={`map-stage-detail-${stage.id}`}
+                    aria-pressed={stage.id === initialStageId ? 'true' : 'false'}
+                  >
+                    <span class="learning-landscape__stage-meta">
+                      <span>Этап {stageNumber(stage.id)}</span>
+                      <span>{lessonCount(stage.lessonIds.length)}</span>
+                    </span>
+                    <strong>{stage.title}</strong>
+                    <span class="learning-landscape__stage-status">
+                      <span data-map-stage-state-label>{stateLabel(stage.id)}</span>
+                      <span data-map-next-label>Следующий</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ))}
+    </div>
+
+    <aside class="learning-landscape__detail" aria-label="Выбранный этап" aria-live="polite">
+      {map.stages.map((stage) => {
+        const group = groups.find(({ stages }) => stages.some(({ id }) => id === stage.id));
+        const stageState = initialState.stageStates[stage.id] ?? 'blocked';
+        const isNext = stage.id === initialState.nextStageId;
+        return (
+          <section
+            id={`map-stage-detail-${stage.id}`}
+            data-map-stage-panel={stage.id}
+            data-map-stage-id={stage.id}
+            data-map-stage-state={stageState}
+            data-map-stage-next={String(isNext)}
+            hidden={stage.id !== initialStageId}
+          >
+            <p class="eyebrow">Этап {stageNumber(stage.id)} · {group?.title}</p>
+            <h2>{stage.title}</h2>
+            <p class="learning-landscape__description">{stage.description}</p>
+            <p class="learning-landscape__detail-status">
+              <span data-map-stage-state-label>{stateLabel(stage.id)}</span>
+              <span data-map-next-label>Следующий рекомендованный этап</span>
+            </p>
+            <KnowledgeMapStageContent
+              stage={stage}
+              stages={map.stages}
+              lessons={lessons}
+              practice={practiceByStage[stage.id] ?? []}
+            />
+          </section>
+        );
+      })}
+    </aside>
+  </div>
+
+  <div class="learning-landscape__mobile" aria-label="Области и этапы курса">
+    {groups.map((group, groupIndex) => (
+      <section aria-labelledby={`mobile-map-group-${group.id}`}>
+        <header>
+          <p>Область {String(groupIndex + 1).padStart(2, '0')}</p>
+          <h3 id={`mobile-map-group-${group.id}`}>{group.title}</h3>
+          <span>{group.description}</span>
+        </header>
+        <ol>
+          {group.stages.map((stage) => {
+            const stageState = initialState.stageStates[stage.id] ?? 'blocked';
+            const isNext = stage.id === initialState.nextStageId;
+            return (
+              <li>
+                <details
+                  data-map-stage-id={stage.id}
+                  data-map-stage-state={stageState}
+                  data-map-stage-next={String(isNext)}
+                  open={stage.id === initialStageId}
+                >
+                  <summary>
+                    <span>
+                      <small>Этап {stageNumber(stage.id)} · {lessonCount(stage.lessonIds.length)}</small>
+                      <strong>{stage.title}</strong>
+                    </span>
+                    <span class="learning-landscape__stage-status">
+                      <span data-map-stage-state-label>{stateLabel(stage.id)}</span>
+                      <span data-map-next-label>Следующий</span>
+                    </span>
+                  </summary>
+                  <div class="learning-landscape__mobile-body">
+                    <p>{stage.description}</p>
+                    <KnowledgeMapStageContent
+                      stage={stage}
+                      stages={map.stages}
+                      lessons={lessons}
+                      practice={practiceByStage[stage.id] ?? []}
+                    />
+                  </div>
+                </details>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))}
+  </div>
+
+  <script is:inline type="application/json" data-knowledge-map-data set:html={payload}></script>
+</section>
+
+<script>
+  import '../scripts/knowledge-map';
+</script>

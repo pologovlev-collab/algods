@@ -1,0 +1,28 @@
+export type Theme = 'light' | 'dark';
+
+export const THEME_STORAGE_KEY = 'algods:v2:theme';
+
+export function isTheme(value: unknown): value is Theme {
+  return value === 'light' || value === 'dark';
+}
+
+export function getInitialTheme(storedTheme: unknown, prefersDark: boolean): Theme {
+  if (isTheme(storedTheme)) {
+    return storedTheme;
+  }
+
+  return prefersDark ? 'dark' : 'light';
+}
+
+export function getNextTheme(theme: Theme): Theme {
+  return theme === 'light' ? 'dark' : 'light';
+}
+
+export function getThemeToggleCopy(theme: Theme): {
+  actionLabel: string;
+  visibleLabel: string;
+} {
+  return theme === 'light'
+    ? { actionLabel: 'Включить тёмную тему', visibleLabel: 'Тёмная тема' }
+    : { actionLabel: 'Включить светлую тему', visibleLabel: 'Светлая тема' };
+}

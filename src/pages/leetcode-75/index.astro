@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LeetCode75Collection from '../../components/LeetCode75Collection.astro';
+import { LEETCODE_75_PROVENANCE } from '../../data/leetcode75';
+import { practiceTasks } from '../../data/practice';
+import { getPracticeCollection } from '../../lib/practice';
+
+const leetcode75Tasks = getPracticeCollection(practiceTasks, 'leetcode75');
+const verifiedAtLabel = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${LEETCODE_75_PROVENANCE.verifiedAt}T00:00:00Z`));
+---
+
+<BaseLayout title="LeetCode 75 — AlgoDS" description="Текущий официальный LeetCode 75, сопоставленный этапам курса AlgoDS.">
+  <header class="page-intro page-intro--with-gauge shell">
+    <div>
+      <p class="eyebrow">Проверенный набор</p>
+      <h1>LeetCode 75</h1>
+      <p>
+        Один узнаваемый маршрут из 75 задач: идите в официальном порядке групп,
+        отмечайте результат и сверяйте каждую задачу с этапом курса AlgoDS.
+      </p>
+    </div>
+    <div
+      class="progress-gauge"
+      data-progress-gauge
+      data-progress-total="75"
+      data-progress-kind="problems"
+      role="progressbar"
+      aria-label="Решено задач LeetCode 75"
+      aria-valuemin="0"
+      aria-valuemax="75"
+      aria-valuenow="0"
+    >
+      <div><strong data-gauge-value>0/75</strong><span>решено</span></div>
+    </div>
+  </header>
+
+  <div class="shell section-block">
+    <p class="verification-note">
+      Состав, порядок и группы сверены с официальным LeetCode
+      <time datetime={LEETCODE_75_PROVENANCE.verifiedAt}>{verifiedAtLabel}</time>.
+    </p>
+    <LeetCode75Collection tasks={leetcode75Tasks} />
+  </div>
+</BaseLayout>

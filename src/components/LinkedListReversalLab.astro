@@ -1,0 +1,189 @@
+---
+import { createLinkedListReversalTrace } from '../lib/labs/linked-list-reversal';
+import '../styles/algorithm-labs.css';
+
+const trace = createLinkedListReversalTrace([1, 2, 3, 4]);
+---
+
+<section
+  class="algorithm-lab"
+  data-linked-list-lab
+  data-trace={JSON.stringify(trace)}
+  aria-labelledby="linked-list-lab-title"
+>
+  <header class="algorithm-lab__header">
+    <p class="eyebrow">Интерактивная лаборатория</p>
+    <h2 id="linked-list-lab-title">Развернуть список и не потерять хвост</h2>
+    <p>Следите за <code>prev</code>, <code>cur</code> и сохранённым <code>next</code>. В каждой итерации порядок трёх операций является частью доказательства корректности.</p>
+  </header>
+
+  <div class="algorithm-lab__progress">
+    <span data-lab-step>Шаг 1</span>
+    <span>Порядок: <strong>save → reverse → advance</strong></span>
+  </div>
+
+  <div class="algorithm-lab__array-wrap" tabindex="0" aria-label="Узлы односвязного списка и текущие указатели">
+    <ol class="linked-list-lab__nodes">
+      {trace.values.map((value, index) => (
+        <li data-list-node={index}>
+          <span class="algorithm-lab__pointers" data-list-pointers aria-hidden="true"></span>
+          <strong>{value}</strong>
+          <small data-list-next>next → {trace.initialLinks[index] ?? '∅'}</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <dl class="algorithm-lab__state">
+    <div><dt>Уже развёрнуто</dt><dd data-list-prev>prev = ∅</dd></div>
+    <div><dt>Текущий узел</dt><dd data-list-cur>cur = 0</dd></div>
+    <div><dt>Сохранённый хвост</dt><dd data-list-saved>next = 1</dd></div>
+  </dl>
+  <p class="algorithm-lab__operation" data-list-operation>Операция 1/3: сохраняем <code>next = cur.next</code>.</p>
+
+  <div class="algorithm-lab__prediction" data-lab-prediction>
+    <fieldset>
+      <legend>Что нужно сделать до <code>cur.next = prev</code>?</legend>
+      <div class="algorithm-lab__prediction-options">
+        <button type="button" data-list-predict="save-next" aria-pressed="false">Сохранить next = cur.next</button>
+        <button type="button" data-list-predict="reverse-first" aria-pressed="false">Сначала изменить cur.next</button>
+      </div>
+    </fieldset>
+    <p class="algorithm-lab__feedback" data-lab-feedback aria-live="polite">Сначала выберите безопасный порядок обновления.</p>
+  </div>
+
+  <p class="linked-list-lab__warning"><strong>Классическая ошибка:</strong> если сначала выполнить <code>cur.next = prev</code>, исходная ссылка на непройденный хвост исчезнет.</p>
+  <p class="algorithm-lab__explanation" data-lab-explanation aria-live="polite">Сохраняем индекс следующего узла, пока исходная ссылка ещё доступна.</p>
+
+  <div class="algorithm-lab__controls">
+    <button class="button button--secondary" type="button" data-lab-previous disabled>Предыдущий</button>
+    <button class="button button--primary" type="button" data-lab-next disabled>Следующий</button>
+    <button class="text-button" type="button" data-lab-reset>Сбросить</button>
+  </div>
+</section>
+
+<script>
+  import type { LinkedListReversalTrace } from '../lib/labs/linked-list-reversal';
+
+  document.querySelectorAll<HTMLElement>('[data-linked-list-lab]').forEach((lab) => {
+    if (lab.dataset.labReady === 'true') return;
+    lab.dataset.labReady = 'true';
+    const trace = JSON.parse(lab.dataset.trace ?? '') as LinkedListReversalTrace;
+    const nodes = [...lab.querySelectorAll<HTMLElement>('[data-list-node]')];
+    const prediction = lab.querySelector<HTMLElement>('[data-lab-prediction]');
+    const predictors = [...lab.querySelectorAll<HTMLButtonElement>('[data-list-predict]')];
+    const feedback = lab.querySelector<HTMLElement>('[data-lab-feedback]');
+    const explanation = lab.querySelector<HTMLElement>('[data-lab-explanation]');
+    const previous = lab.querySelector<HTMLButtonElement>('[data-lab-previous]');
+    const next = lab.querySelector<HTMLButtonElement>('[data-lab-next]');
+    const stepLabel = lab.querySelector<HTMLElement>('[data-lab-step]');
+    const prevOutput = lab.querySelector<HTMLElement>('[data-list-prev]');
+    const curOutput = lab.querySelector<HTMLElement>('[data-list-cur]');
+    const savedOutput = lab.querySelector<HTMLElement>('[data-list-saved]');
+    const operationOutput = lab.querySelector<HTMLElement>('[data-list-operation]');
+    let position = 0;
+    let revealed = false;
+
+    const pointerText = (name: string, index: number | null) => `${name} = ${index ?? '∅'}`;
+    const clearPrediction = () => {
+      revealed = false;
+      predictors.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+      if (feedback) {
+        feedback.textContent = 'Сначала выберите безопасный порядок обновления.';
+        delete feedback.dataset.feedbackState;
+      }
+    };
+
+    const render = () => {
+      const step = trace.steps[position];
+      const isResult = position >= trace.steps.length;
+      if (stepLabel) stepLabel.textContent = isResult
+        ? `Итог · ${trace.steps.length + 1} / ${trace.steps.length + 1}`
+        : `Шаг ${position + 1} / ${trace.steps.length + 1}`;
+
+      const links = isResult ? trace.finalLinks : step?.links ?? trace.initialLinks;
+      nodes.forEach((node) => {
+        const index = Number(node.dataset.listNode);
+        const pointers = node.querySelector<HTMLElement>('[data-list-pointers]');
+        const nextLabel = node.querySelector<HTMLElement>('[data-list-next]');
+        if (pointers) pointers.replaceChildren();
+        if (nextLabel) nextLabel.textContent = `next → ${links[index] ?? '∅'}`;
+        node.dataset.listState = isResult ? 'result' : 'idle';
+        if (!step || isResult) return;
+        if (index === step.prev) node.dataset.listState = 'prev';
+        if (index === step.cur) node.dataset.listState = 'cur';
+        for (const [name, pointer] of [['prev', step.prev], ['cur', step.cur], ['next', step.savedNext]] as const) {
+          if (pointers && index === pointer) {
+            const label = document.createElement('span');
+            label.textContent = name;
+            pointers.append(label);
+          }
+        }
+      });
+
+      if (isResult) {
+        if (prevOutput) prevOutput.textContent = pointerText('head', trace.resultHead);
+        if (curOutput) curOutput.textContent = 'cur = ∅';
+        if (savedOutput) savedOutput.textContent = 'next = ∅';
+        if (operationOutput) operationOutput.textContent = `Результат: ${trace.resultValues.join(' → ')} → ∅`;
+        if (explanation) explanation.textContent = 'Все исходные узлы сохранились, каждая ссылка направлена назад, а бывший хвост стал новой головой.';
+        if (prediction) prediction.hidden = true;
+      } else if (step) {
+        if (prevOutput) prevOutput.textContent = pointerText('prev', step.prev);
+        if (curOutput) curOutput.textContent = pointerText('cur', step.cur);
+        if (savedOutput) savedOutput.textContent = pointerText('next', step.savedNext);
+        if (prediction) prediction.hidden = step.operation !== 'save-next';
+        if (operationOutput) operationOutput.innerHTML = step.operation === 'save-next'
+          ? 'Операция 1/3: сохраняем <code>next = cur.next</code>.'
+          : step.operation === 'reverse-link'
+            ? 'Операция 2/3: меняем направление <code>cur.next = prev</code>.'
+            : 'Операция 3/3: сдвигаем <code>prev = cur</code>, затем <code>cur = next</code>.';
+        if (explanation) explanation.textContent = step.operation === 'save-next'
+          ? 'Сохраняем путь к непройденному хвосту, пока исходная ссылка ещё доступна.'
+          : step.operation === 'reverse-link'
+            ? 'Теперь ссылку текущего узла можно безопасно направить к уже развёрнутой части.'
+            : step.cur === null
+              ? 'Текущего узла больше нет: все ссылки обработаны.'
+              : 'Указатели перешли к следующей итерации, а сохранённый хвост не потерян.';
+      }
+
+      if (previous) previous.disabled = position === 0;
+      if (next) {
+        next.disabled = isResult || (step?.operation === 'save-next' && !revealed);
+        next.textContent = position === trace.steps.length - 1 ? 'Показать итог' : 'Следующий';
+      }
+    };
+
+    predictors.forEach((button) => button.addEventListener('click', () => {
+      const step = trace.steps[position];
+      if (!step || step.operation !== 'save-next') return;
+      const correct = button.dataset.listPredict === 'save-next';
+      revealed = true;
+      predictors.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+      if (feedback) {
+        feedback.textContent = correct
+          ? 'Верно. Сохранённый next оставляет доступ к непройденному хвосту после перенаправления ссылки.'
+          : 'Так исходный cur.next будет перезаписан, и путь к хвосту потеряется. Сначала сохраните next.';
+        feedback.dataset.feedbackState = correct ? 'correct' : 'incorrect';
+      }
+      if (next) next.disabled = false;
+    }));
+    previous?.addEventListener('click', () => {
+      position = Math.max(0, position - 1);
+      clearPrediction();
+      render();
+    });
+    next?.addEventListener('click', () => {
+      position = Math.min(trace.steps.length, position + 1);
+      clearPrediction();
+      render();
+    });
+    lab.querySelector<HTMLButtonElement>('[data-lab-reset]')?.addEventListener('click', () => {
+      position = 0;
+      clearPrediction();
+      render();
+      predictors[0]?.focus();
+    });
+    render();
+  });
+</script>

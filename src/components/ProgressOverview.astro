@@ -1,0 +1,74 @@
+---
+import { getCollection } from 'astro:content';
+
+import { orderCourseLessons } from '../lib/course';
+
+interface Props {
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+const activityDays = Array.from({ length: 84 }, (_, index) => index);
+const coursePlan = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data)).map(
+  ({ id, slug, prerequisites }) => ({ id, href: `/course/${slug}/`, prerequisites }),
+);
+---
+
+<section
+  class="progress-overview"
+  aria-labelledby="progress-overview-title"
+  data-progress-overview
+  data-course-plan={JSON.stringify(coursePlan)}
+>
+  <div class="progress-overview__heading">
+    <div>
+      <p class="eyebrow">Локальный прогресс</p>
+      <Heading id="progress-overview-title">Двигайтесь в своём темпе</Heading>
+    </div>
+    <a class="text-link" href="/course/" data-continue-course>Начать первый урок</a>
+  </div>
+
+  <dl class="progress-summary">
+    <div>
+      <dt>Уроки</dt>
+      <dd><span data-progress-value="completedLessons">0</span>/<span data-progress-value="totalLessons">54</span></dd>
+    </div>
+    <div>
+      <dt>LeetCode 75</dt>
+      <dd><span data-progress-value="solvedProblems">0</span>/<span data-progress-value="totalProblems">75</span></dd>
+    </div>
+    <div>
+      <dt>Самостоятельно в LC75</dt>
+      <dd data-progress-value="independentProblems">0</dd>
+    </div>
+    <div>
+      <dt>Повторить в LC75</dt>
+      <dd data-progress-value="revisitProblems">0</dd>
+    </div>
+  </dl>
+
+  <div class="activity" aria-labelledby="activity-title">
+    <div class="activity__heading">
+      <h3 id="activity-title">Последние 12 недель</h3>
+      <p>Отмечаются завершённые уроки, задачи и повторения — без серии дней.</p>
+    </div>
+    <div class="activity-chart">
+      <ol class="activity-weekdays" aria-hidden="true">
+        {Array.from({ length: 7 }, (_, index) => <li data-activity-weekday={index}></li>)}
+      </ol>
+      <ol class="activity-grid" aria-hidden="true">
+        {activityDays.map((index) => (
+          <li>
+            <span data-activity-index={index} data-activity-level="0" aria-hidden="true"></span>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <p class="activity-range" data-activity-range>Последние 12 недель</p>
+    <p class="sr-only" data-activity-summary aria-live="polite">Учебной активности пока нет.</p>
+    <div class="activity-legend" aria-hidden="true">
+      <span>Нет</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><span>Больше</span>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,64 @@
+---
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-label="Включить тёмную тему"
+>
+  <span class="theme-toggle__long" data-theme-label>Тёмная тема</span>
+  <span class="theme-toggle__short" aria-hidden="true">Тема</span>
+</button>
+
+<script>
+  import {
+    getInitialTheme,
+    getNextTheme,
+    getThemeToggleCopy,
+    isTheme,
+    THEME_STORAGE_KEY,
+    type Theme,
+  } from '../lib/theme';
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]');
+
+  const readCurrentTheme = (): Theme => {
+    const currentTheme = document.documentElement.dataset.theme;
+    return isTheme(currentTheme)
+      ? currentTheme
+      : getInitialTheme(null, mediaQuery.matches);
+  };
+
+  const renderButtons = (theme: Theme) => {
+    const { actionLabel, visibleLabel } = getThemeToggleCopy(theme);
+
+    buttons.forEach((button) => {
+      button.setAttribute('aria-label', actionLabel);
+      const label = button.querySelector<HTMLElement>('[data-theme-label]');
+      if (label) label.textContent = visibleLabel;
+    });
+  };
+
+  renderButtons(readCurrentTheme());
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const nextTheme = getNextTheme(readCurrentTheme());
+      document.documentElement.dataset.theme = nextTheme;
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      } catch {
+        // The visual preference still applies for this page when storage is unavailable.
+      }
+      window.dispatchEvent(new CustomEvent('algods:theme-change', { detail: nextTheme }));
+      renderButtons(nextTheme);
+    });
+  });
+
+  window.addEventListener('algods:resolved-theme', (event) => {
+    if (!(event instanceof CustomEvent) || !isTheme(event.detail)) return;
+    renderButtons(event.detail);
+  });
+</script>
