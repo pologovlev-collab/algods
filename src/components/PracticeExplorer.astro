@@ -3,7 +3,9 @@ import { getCollection } from 'astro:content';
 
 import {
   PRACTICE_MODE_LABELS,
+  PRACTICE_NATIVE_LEVEL_LABELS,
   PRACTICE_PROVIDER_LABELS,
+  PRACTICE_TIER_SHORT_LABELS,
   PRACTICE_TIER_LABELS,
 } from '../data/practice';
 import { orderPracticeTasks, type PracticeTask } from '../lib/practice';
@@ -110,7 +112,7 @@ const providerCounts = providers.map((provider) => ({
     <div class="table-scroll" tabindex="0" aria-label="Таблица задач разных платформ">
       <table class="practice-table practice-table--master">
         <thead>
-          <tr><th>Задача</th><th>Тема и режим</th><th>Уровень</th><th>Готовность</th><th>Статус</th></tr>
+          <tr><th>Задача</th><th>Тема и режим</th><th>Уровни</th><th>Готовность</th><th>Статус</th></tr>
         </thead>
         <tbody>
           {orderedTasks.map((task) => (
@@ -128,9 +130,13 @@ const providerCounts = providers.map((provider) => ({
             >
               <td>
                 <a href={task.url} target="_blank" rel="noopener noreferrer">
-                  <span class="problem-id">{task.providerTaskId}</span> {task.title}
+                  {task.title}
                 </a>
-                <small>{PRACTICE_PROVIDER_LABELS[task.provider]} · проверено {task.verification.verifiedAt}</small>
+                <small>
+                  {PRACTICE_PROVIDER_LABELS[task.provider]}
+                  {task.provider !== 'codewars' && <> · ID {task.providerTaskId}</>}
+                  {' · '}проверено {task.verification.verifiedAt}
+                </small>
                 <details class="task-note"><summary>Учебная цель</summary><p>{task.noteRu}</p></details>
               </td>
               <td>
@@ -138,8 +144,10 @@ const providerCounts = providers.map((provider) => ({
                 <small>{PRACTICE_MODE_LABELS[task.mode]}</small>
               </td>
               <td>
-                <span>{task.nativeLevel?.label ?? 'Без официального уровня'}</span>
-                <small>{PRACTICE_TIER_LABELS[task.tier]}</small>
+                <span>
+                  {PRACTICE_NATIVE_LEVEL_LABELS[task.provider]}: {task.nativeLevel?.label ?? 'не указан'}
+                </span>
+                <small>Уровень AlgoDS: {PRACTICE_TIER_SHORT_LABELS[task.tier]}</small>
               </td>
               <td>
                 <a href={`/course/#stage-${task.stage}`}>Этап {task.stage}</a>

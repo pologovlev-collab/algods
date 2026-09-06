@@ -28,19 +28,28 @@ test('practice filters and a task status remain deterministic after reload', asy
   await page.goto('/practice/');
 
   await page.locator('[data-filter-provider]').selectOption('codewars');
+  await page.locator('[data-filter-query]').fill('52597aa56021e91c93000cb0');
+  await expect(page.locator('[data-filter-count]')).toHaveText('1');
+
+  const row = page.locator('[data-practice-row][data-problem-id="codewars:52597aa56021e91c93000cb0"]');
+  await expect(row).toBeVisible();
+  await expect(row).not.toContainText('52597aa56021e91c93000cb0');
+  await expect(row.getByRole('link', { name: 'Moving Zeros To The End', exact: true })).toHaveAttribute(
+    'href',
+    'https://www.codewars.com/kata/52597aa56021e91c93000cb0',
+  );
+  await expect(row).toContainText('Ранг Codewars: 5 kyu');
+  await expect(row).toContainText('Уровень AlgoDS: Основной');
+
+  await page.locator('[data-filter-query]').fill('');
   await page.locator('[data-filter-stage]').selectOption('3');
   await page.locator('[data-filter-tier]').selectOption('standard');
   await page.locator('[data-filter-mode]').selectOption('transfer');
   await page.locator('[data-filter-status]').selectOption('not-started');
 
   const count = page.locator('[data-filter-count]');
-  const row = page.locator('[data-practice-row][data-problem-id="codewars:52597aa56021e91c93000cb0"]');
   await expect(count).toHaveText('1');
   await expect(row).toBeVisible();
-  await expect(row.getByRole('link', { name: /Moving Zeros To The End/ })).toHaveAttribute(
-    'href',
-    'https://www.codewars.com/kata/52597aa56021e91c93000cb0',
-  );
 
   await row.locator('[data-problem-status]').selectOption('solved-independent');
   await expect(count).toHaveText('0');

@@ -1,8 +1,9 @@
 ---
 import {
   PRACTICE_MODE_LABELS,
+  PRACTICE_NATIVE_LEVEL_LABELS,
   PRACTICE_PROVIDER_LABELS,
-  PRACTICE_TIER_LABELS,
+  PRACTICE_TIER_SHORT_LABELS,
 } from '../data/practice';
 import type { PracticeTask } from '../lib/practice';
 import ProblemStatus from './ProblemStatus.astro';
@@ -28,8 +29,10 @@ const { problems } = Astro.props;
             <p class="lesson-practice__meta">
               <span>{PRACTICE_MODE_LABELS[problem.mode]}</span>
               <span>{PRACTICE_PROVIDER_LABELS[problem.provider]} · внешняя задача</span>
-              <span>{problem.nativeLevel?.label ?? 'Без официального уровня'}</span>
-              <span>{PRACTICE_TIER_LABELS[problem.tier]}</span>
+              <span>
+                {PRACTICE_NATIVE_LEVEL_LABELS[problem.provider]}: {problem.nativeLevel?.label ?? 'не указан'}
+              </span>
+              <span>Уровень AlgoDS: {PRACTICE_TIER_SHORT_LABELS[problem.tier]}</span>
             </p>
             <h3><a href={problem.url} target="_blank" rel="noopener noreferrer">{problem.title}</a></h3>
             <p>{problem.noteRu}</p>

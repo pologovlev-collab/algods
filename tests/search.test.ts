@@ -87,13 +87,13 @@ describe('global search index', () => {
       practiceTasks,
     });
 
-    expect(entries).toHaveLength(259);
+    expect(entries).toHaveLength(239);
     expect(new Set(entries.map(({ id }) => id)).size).toBe(entries.length);
     expect(entries.filter(({ type }) => type === 'section')).toHaveLength(5);
     expect(entries.filter(({ type }) => type === 'stage')).toHaveLength(21);
     expect(entries.filter(({ type }) => type === 'lesson')).toHaveLength(54);
     expect(entries.filter(({ type }) => type === 'reference')).toHaveLength(33);
-    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(146);
+    expect(entries.filter(({ type }) => type === 'practice')).toHaveLength(126);
 
     expect(entries.find(({ id }) => id === 'section:practice')).toMatchObject({
       topics: ['LeetCode 75', 'CodeRun', 'Codewars', 'задачи для собеседований'],
@@ -129,6 +129,9 @@ describe('global search index', () => {
     });
     expect(rankSearchEntries(entries, 'Codewars').some(({ id }) => id.startsWith('practice:codewars:')))
       .toBe(true);
+    expect(rankSearchEntries(entries, 'Growth of a Population')).toEqual([]);
+    expect(entries.some(({ id }) => id === 'practice:codewars:563b662a59afc2b5120000c6'))
+      .toBe(false);
     expect(rankSearchEntries(entries, 'std::vector')[0]).toMatchObject({
       id: 'reference:dynamic-array',
       type: 'reference',

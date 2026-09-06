@@ -1936,13 +1936,6 @@ html[data-code-language='python'] [data-code-language='cpp'] {
   line-height: 1.45;
 }
 
-.problem-id {
-  margin-right: 0.3rem;
-  color: var(--ink-soft);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-
 .progress-gauge {
   display: grid;
   width: 10rem;

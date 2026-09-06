@@ -4,6 +4,7 @@ import { leetcode75Problems } from './leetcode75';
 import {
   assertValidPracticeTasks,
   type PracticeMode,
+  type PracticeProviderId,
   type PracticeTask,
   type PracticeTier,
 } from '../lib/practice';
@@ -18,6 +19,18 @@ export const PRACTICE_TIER_LABELS: Record<PracticeTier, string> = {
   'warm-up': 'Разминка AlgoDS',
   standard: 'Основной уровень AlgoDS',
   stretch: 'С вызовом AlgoDS',
+};
+
+export const PRACTICE_TIER_SHORT_LABELS: Record<PracticeTier, string> = {
+  'warm-up': 'Разминка',
+  standard: 'Основной',
+  stretch: 'С вызовом',
+};
+
+export const PRACTICE_NATIVE_LEVEL_LABELS: Record<PracticeProviderId, string> = {
+  leetcode: 'Сложность LeetCode',
+  coderun: 'Сложность CodeRun',
+  codewars: 'Ранг Codewars',
 };
 
 export const PRACTICE_MODE_LABELS: Record<PracticeMode, string> = {
