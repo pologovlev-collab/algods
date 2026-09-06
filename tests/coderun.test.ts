@@ -19,7 +19,7 @@ describe('verified CodeRun practice corpus', () => {
     for (const problem of coderunProblems) {
       expect(problem.url).toBe(`https://coderun.yandex.ru/problem/${problem.slug}`);
       expect(problem.title.trim().length).toBeGreaterThan(0);
-      expect(problem.verifiedAt).toBe('2026-09-01');
+      expect(problem.verifiedAt).toBe('2026-09-06');
       expect(['Лёгкая', 'Средняя', 'Сложная']).toContain(problem.difficulty);
       expect(problem.prerequisiteLessonIds.length).toBeGreaterThan(0);
       expect(problem.topics.length).toBeGreaterThan(0);
@@ -30,7 +30,7 @@ describe('verified CodeRun practice corpus', () => {
   it('records the official catalog used for direct URL, title, and difficulty verification', () => {
     expect(CODERUN_PROVENANCE).toEqual({
       provider: 'CodeRun',
-      verifiedAt: '2026-09-01',
+      verifiedAt: '2026-09-06',
       sourceUrl: 'https://coderun.yandex.ru/catalog?groups=algorithm',
     });
   });
@@ -49,5 +49,20 @@ describe('verified CodeRun practice corpus', () => {
     expect(counts['Лёгкая']).toHaveLength(20);
     expect(counts['Средняя']).toHaveLength(17);
     expect(counts['Сложная'] ?? []).toHaveLength(0);
+  });
+
+  it('maps multi-pattern tasks after every technique they actually require', () => {
+    expect(coderunProblems.find(({ id }) => id === '25')).toMatchObject({
+      recommendedStage: 14,
+      prerequisiteLessonIds: ['s11-l01', 's14-l01'],
+      topics: ['Куча', 'Жадное слияние'],
+      practiceMode: 'transfer',
+      tier: 'standard',
+    });
+    expect(coderunProblems.find(({ id }) => id === '40')).toMatchObject({
+      recommendedStage: 13,
+      prerequisiteLessonIds: ['s08-l03', 's13-l02'],
+      topics: ['Бинарный поиск по ответу', 'DFS'],
+    });
   });
 });

@@ -12,7 +12,7 @@ export interface LeetCode75Problem {
   officialOrderInGroup: number;
   officialOrder: number;
   provider: 'LeetCode';
-  verifiedAt: '2026-08-20';
+  verifiedAt: '2026-09-06';
   primaryPattern: string;
   secondaryPatterns: string[];
   prerequisiteLessonIds: string[];
@@ -1077,7 +1077,7 @@ const rawGroups: Array<{ name: string; problems: ProblemDraft[] }> = [
 
 export const LEETCODE_75_PROVENANCE = {
   provider: 'LeetCode',
-  verifiedAt: '2026-08-20',
+  verifiedAt: '2026-09-06',
   sourceUrls: [
     'https://leetcode.com/studyplan/leetcode-75/',
     'https://leetcode.com/graphql/',

@@ -93,7 +93,7 @@ describe('LeetCode 75 provenance', () => {
   it('records the live verification date and official source URLs', () => {
     expect(LEETCODE_75_PROVENANCE).toEqual({
       provider: 'LeetCode',
-      verifiedAt: '2026-08-20',
+      verifiedAt: '2026-09-06',
       sourceUrls: [
         'https://leetcode.com/studyplan/leetcode-75/',
         'https://leetcode.com/graphql/',
@@ -178,7 +178,7 @@ describe('LeetCode 75 official dataset', () => {
   it('provides an original concise Russian learning note without company metadata', () => {
     for (const problem of leetcode75Problems) {
       expect(problem.provider).toBe('LeetCode');
-      expect(problem.verifiedAt).toBe('2026-08-20');
+      expect(problem.verifiedAt).toBe('2026-09-06');
       expect(problem.learningNoteRu).toMatch(/[А-Яа-яЁё]/);
       expect(problem.learningNoteRu.length).toBeGreaterThanOrEqual(20);
       expect(problem.learningNoteRu.length).toBeLessThanOrEqual(180);

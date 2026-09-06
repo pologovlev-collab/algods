@@ -50,6 +50,18 @@ describe('curriculum graph', () => {
     ]);
   });
 
+  it('states the lower-bound invariant without excluding the valid answer n', async () => {
+    const lesson = (await readLessonDocuments(lessonDirectory))
+      .find(({ data }) => data.id === 's08-l02');
+
+    expect(lesson?.body).toContain(
+      'Граница `p` всегда находится в закрытом диапазоне кандидатов `[lo, hi]`',
+    );
+    expect(lesson?.body).toContain(
+      'непроверенные позиции массива образуют полуинтервал `[lo, hi)`',
+    );
+  });
+
   it('keeps every advanced reference topic outside core progress', async () => {
     const lessonIds = new Set(
       (await readLessonDocuments(lessonDirectory)).map(({ data }) => data.id),
