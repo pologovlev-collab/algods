@@ -24,7 +24,7 @@ const tracePayload = exactSearch
 const title = exactSearch ? 'Точный поиск значения 11' : 'Граница первого элемента ≥ 8';
 const invariant = exactSearch
   ? 'Инвариант: если значение есть, оно остаётся в закрытом диапазоне [lo, hi].'
-  : 'Инвариант: ответ всё время остаётся внутри полуинтервала [lo, hi).';
+  : 'Инвариант: кандидат ответа p остаётся в закрытом диапазоне [lo, hi], а ещё не классифицированные позиции массива — в полуинтервале [lo, hi). Значение hi = n допустимо.';
 ---
 
 <section
@@ -50,7 +50,7 @@ const invariant = exactSearch
   <p class="binary-lab__explanation" data-binary-explanation aria-live="polite">
     {exactSearch
       ? 'Начальное состояние: значение 11 может находиться в закрытом диапазоне [0, 7].'
-      : 'Начальное состояние: граница находится где-то в [0, 8).'}
+      : 'Начальное состояние: кандидат ответа p находится в закрытом диапазоне [0, 8]; позиции массива [0, 8) ещё не классифицированы, а 8 — допустимая граница после массива.'}
   </p>
   <div class="binary-lab__controls">
     <button class="button button--secondary" type="button" data-binary-previous disabled>Назад</button>
@@ -109,7 +109,7 @@ const invariant = exactSearch
       if (position < 0 && explanation) {
         explanation.textContent = trace.mode === 'exact'
           ? `Начальное состояние: значение ${trace.target} может находиться в закрытом диапазоне [0, ${trace.values.length - 1}].`
-          : `Начальное состояние: граница находится где-то в [0, ${trace.values.length}).`;
+          : `Начальное состояние: кандидат ответа p находится в закрытом диапазоне [0, ${trace.values.length}]; позиции массива [0, ${trace.values.length}) ещё не классифицированы, а ${trace.values.length} — допустимая граница после массива.`;
       } else if (frame?.kind === 'decision' && explanation) {
         if (trace.mode === 'exact') {
           explanation.textContent = frame.decision === 'found'

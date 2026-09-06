@@ -75,6 +75,9 @@ test('Binary Search uses the correct invariant in both lesson contexts', async (
 
   await expect(boundaryLab).toHaveAttribute('data-binary-mode', 'lower-bound');
   await expect(boundaryLab.getByRole('heading', { name: 'Граница первого элемента ≥ 8' })).toBeVisible();
+  await expect(boundaryLab.locator('.binary-lab__heading > p:not(.eyebrow)')).toHaveText(
+    'Инвариант: кандидат ответа p остаётся в закрытом диапазоне [lo, hi], а ещё не классифицированные позиции массива — в полуинтервале [lo, hi). Значение hi = n допустимо.',
+  );
   for (let step = 0; step < 4; step += 1) {
     await boundaryNext.press(step % 2 === 0 ? 'Enter' : 'Space');
   }
@@ -82,7 +85,9 @@ test('Binary Search uses the correct invariant in both lesson contexts', async (
   await expect(boundaryLab.locator('[data-binary-explanation]')).toContainText('первое вхождение 8');
   await boundaryReset.focus();
   await boundaryReset.press('Space');
-  await expect(boundaryLab.locator('[data-binary-explanation]')).toContainText('граница находится где-то в [0, 8)');
+  await expect(boundaryLab.locator('[data-binary-explanation]')).toHaveText(
+    'Начальное состояние: кандидат ответа p находится в закрытом диапазоне [0, 8]; позиции массива [0, 8) ещё не классифицированы, а 8 — допустимая граница после массива.',
+  );
   await expect(boundaryReset).toBeFocused();
 });
 

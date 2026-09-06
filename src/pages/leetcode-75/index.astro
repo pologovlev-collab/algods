@@ -1,10 +1,17 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LeetCode75Collection from '../../components/LeetCode75Collection.astro';
+import { LEETCODE_75_PROVENANCE } from '../../data/leetcode75';
 import { practiceTasks } from '../../data/practice';
 import { getPracticeCollection } from '../../lib/practice';
 
 const leetcode75Tasks = getPracticeCollection(practiceTasks, 'leetcode75');
+const verifiedAtLabel = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${LEETCODE_75_PROVENANCE.verifiedAt}T00:00:00Z`));
 ---
 
 <BaseLayout title="LeetCode 75 — AlgoDS" description="Текущий официальный LeetCode 75, сопоставленный этапам курса AlgoDS.">
@@ -33,7 +40,10 @@ const leetcode75Tasks = getPracticeCollection(practiceTasks, 'leetcode75');
   </header>
 
   <div class="shell section-block">
-    <p class="verification-note">Состав, порядок и группы сверены с официальным LeetCode 20 августа 2026 года.</p>
+    <p class="verification-note">
+      Состав, порядок и группы сверены с официальным LeetCode
+      <time datetime={LEETCODE_75_PROVENANCE.verifiedAt}>{verifiedAtLabel}</time>.
+    </p>
     <LeetCode75Collection tasks={leetcode75Tasks} />
   </div>
 </BaseLayout>

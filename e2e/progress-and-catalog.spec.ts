@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { LEETCODE_75_PROVENANCE } from '../src/data/leetcode75';
 
 test('course completion persists and updates course and roadmap state @smoke', async ({ page }) => {
   await page.goto('/');
@@ -71,8 +72,11 @@ test('LeetCode 75 renders exactly 75 tasks and persists solved progress', async 
   const entries = page.locator('[data-leetcode-collection] [data-problem-id]');
   const firstStatus = entries.first().locator('[data-problem-status]');
   const gauge = page.locator('[data-progress-gauge]');
+  const verificationDate = page.locator('.verification-note time');
   await expect(entries).toHaveCount(75);
   await expect(gauge.locator('[data-gauge-value]')).toHaveText('0/75');
+  await expect(verificationDate).toHaveAttribute('datetime', LEETCODE_75_PROVENANCE.verifiedAt);
+  await expect(verificationDate).toHaveText('6 сентября 2026 г.');
 
   await firstStatus.selectOption('solved-independent');
   await expect(gauge.locator('[data-gauge-value]')).toHaveText('1/75');
