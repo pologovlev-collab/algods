@@ -150,3 +150,36 @@ test.describe('mobile navigation', () => {
     }
   });
 });
+
+test('dark theme and reduced motion keep representative interactive pages console-clean', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+  });
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+
+  for (const path of [
+    '/roadmap/',
+    '/practice/',
+    '/course/tree-model-and-traversals/',
+    '/course/dp-tabulation-and-order/',
+  ]) {
+    await page.goto(path);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    const motion = await page.evaluate(() => {
+      const labChild = document.querySelector<HTMLElement>('.algorithm-lab button');
+      const roadmapStage = document.querySelector<HTMLElement>('.learning-landscape__stage');
+      return {
+        rootScrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
+        labTransitionSeconds: labChild ? Number.parseFloat(getComputedStyle(labChild).transitionDuration) : null,
+        roadmapTransitionSeconds: roadmapStage ? Number.parseFloat(getComputedStyle(roadmapStage).transitionDuration) : null,
+      };
+    });
+    expect(motion.rootScrollBehavior, path).toBe('auto');
+    if (motion.labTransitionSeconds !== null) expect(motion.labTransitionSeconds, path).toBeLessThanOrEqual(0.00001);
+    if (motion.roadmapTransitionSeconds !== null) expect(motion.roadmapTransitionSeconds, path).toBeLessThanOrEqual(0.00001);
+  }
+
+  expect(errors).toEqual([]);
+});
