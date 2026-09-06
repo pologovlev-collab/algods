@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { practiceTasks } from '../src/data/practice';
 import {
+  CODEWARS_PROGRESS_IDS,
   CODERUN_PROGRESS_IDS,
   KNOWN_PROBLEM_ID_SET,
   LEETCODE_75_PROGRESS_IDS,
@@ -54,8 +55,13 @@ describe('normalized practice domain', () => {
 
   it('preserves the complete legacy progress IDs and curated order independently', () => {
     expect(LEETCODE_75_PROGRESS_IDS).toEqual(LEGACY_LEETCODE_75_PROGRESS_IDS);
-    expect(LEGACY_CODERUN_PROGRESS_IDS.every((id) => CODERUN_PROGRESS_IDS.includes(id)))
-      .toBe(true);
+    expect(CODERUN_PROGRESS_IDS).toEqual(
+      practiceTasks.filter(({ provider }) => provider === 'coderun').map(({ id }) => id),
+    );
+    expect(CODEWARS_PROGRESS_IDS).toEqual(
+      practiceTasks.filter(({ provider }) => provider === 'codewars').map(({ id }) => id),
+    );
+    expect(LEGACY_CODERUN_PROGRESS_IDS.every((id) => CODERUN_PROGRESS_IDS.includes(id))).toBe(true);
     expect(getPracticeCollection(practiceTasks, 'leetcode75').map(({ id }) => id))
       .toEqual(LEGACY_LEETCODE_75_PROGRESS_IDS);
   });
