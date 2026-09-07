@@ -27,6 +27,46 @@ const socialImage = new URL('/og-image-v2.png', siteOrigin);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Yandex Metrica counter -->
+    <script is:inline>
+      /* eslint-disable prefer-rest-params, no-var */
+
+      (() => {
+        if (
+          window.location.hostname !== 'algods.ru' &&
+          window.location.hostname !== 'www.algods.ru'
+        ) {
+          return;
+        }
+
+        (function(m,e,t,r,i,k,a){
+          m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+          m[i].l=1*new Date();
+
+          for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) {
+              return;
+            }
+          }
+
+          k=e.createElement(t);
+          a=e.getElementsByTagName(t)[0];
+          k.async=1;
+          k.src=r;
+          a.parentNode.insertBefore(k,a);
+        })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+
+        ym(108312356, 'init', {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true
+        });
+      })();
+
+      /* eslint-enable prefer-rest-params, no-var */
+    </script>
+    <!-- /Yandex Metrica counter -->
     <script is:inline define:vars={{ themeStorageKey: THEME_STORAGE_KEY, progressStorageKey: PROGRESS_STORAGE_KEY }}>
       (() => {
         try {
@@ -74,6 +114,15 @@ const socialImage = new URL('/og-image-v2.png', siteOrigin);
     <slot name="head" />
   </head>
   <body>
+    <noscript>
+      <div>
+        <img
+          src="https://mc.yandex.ru/watch/108312356"
+          style="position:absolute; left:-9999px;"
+          alt=""
+        />
+      </div>
+    </noscript>
     <a class="skip-link" href="#main-content">Перейти к содержанию</a>
     <Header currentPath={Astro.url.pathname} />
     <p class="global-state-message" data-state-message role="status" aria-live="polite"></p>
