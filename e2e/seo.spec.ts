@@ -1,4 +1,56 @@
 import { expect, test } from '@playwright/test';
+import { inspectLayout } from './helpers/layout';
+import { THEME_STORAGE_KEY } from '../src/lib/theme';
+
+for (const width of [360, 390, 430, 768, 1024, 1440]) {
+  for (const theme of ['light', 'dark']) {
+    test(`guides preserve layout, theme and console at ${width}px in ${theme}`, async ({ page }, testInfo) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), { key: THEME_STORAGE_KEY, value: theme });
+      for (const route of ['/big-o/', '/algorithm-patterns/', '/coding-interview/', '/about/']) {
+        await page.goto(route);
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        expect((await page.evaluate(inspectLayout)).issues, route).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        if (width === 390 || width === 1440) {
+          await page.screenshot({ path: testInfo.outputPath(`${route.replaceAll('/', '')}-viewport.png`) });
+        }
+      }
+      if (width <= 430) {
+        await page.goto('/big-o/');
+        const table = page.getByRole('region', { name: 'Прокручиваемая таблица' }).first();
+        expect(await table.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+        await table.focus();
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+      }
+      expect(errors).toEqual([]);
+    });
+  }
+}
+
+test('learning guides render standalone content and reuse the real curriculum', async ({ page }, testInfo) => {
+  for (const route of ['/big-o/', '/algorithm-patterns/', '/coding-interview/', '/about/']) {
+    const response = await page.goto(route);
+    expect(response?.status(), route).toBe(200);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://algods.ru${route}`);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /\S/);
+    await expect(page.getByRole('navigation', { name: 'Хлебные крошки' })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`${route.replaceAll('/', '')}-desktop.png`), fullPage: true });
+  }
+  await page.goto('/big-o/');
+  await expect(page.getByRole('table')).toHaveCount(3);
+  await page.goto('/algorithm-patterns/');
+  await expect(page.locator('[data-pattern-guide]')).toHaveCount(12);
+  await page.goto('/coding-interview/');
+  await expect(page.locator('[data-interview-stage]')).toHaveCount(21);
+  expect(await page.locator('[data-interview-stage]').evaluateAll((items) => items.map((item) => item.getAttribute('data-interview-stage'))))
+    .toEqual(Array.from({ length: 21 }, (_, i) => String(i)));
+});
 
 test('lesson SEO overrides keep the teaching H1 and summary', async ({ page }) => {
   await page.goto('/course/variable-sliding-window/');

@@ -1,0 +1,20 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import '../styles/guides.css';
+interface Props { title: string; description: string; heading: string; intro: string }
+const { title, description, heading, intro } = Astro.props;
+---
+<BaseLayout title={title} description={description}>
+  <article class="guide shell">
+    <header class="guide-intro">
+      <Breadcrumbs items={[
+        { name: 'AlgoDS', href: '/' },
+        { name: heading, href: Astro.url.pathname },
+      ]} />
+      <h1>{heading}</h1>
+      <p>{intro}</p>
+    </header>
+    <div class="guide-body lesson-body"><slot /></div>
+  </article>
+</BaseLayout>

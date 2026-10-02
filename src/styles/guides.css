@@ -1,0 +1,93 @@
+.guide {
+  max-width: 52rem;
+  padding-block: 2rem 1rem;
+}
+
+.guide-intro h1 {
+  max-width: 24ch;
+  margin-bottom: 1.25rem;
+  font-size: clamp(2.1rem, 5vw, 3.75rem);
+}
+
+.guide-intro > p {
+  max-width: 65ch;
+  color: var(--ink-soft);
+  font-size: 1.15rem;
+}
+
+.guide-body section {
+  scroll-margin-top: 6rem;
+}
+
+.guide-body table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.guide-body th,
+.guide-body td {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.guide-body th {
+  background: var(--surface-subtle);
+}
+
+.guide-body .content-table-scroll {
+  margin-block: 1.5rem;
+}
+
+.guide-body dl {
+  margin-block: 1rem 1.5rem;
+}
+
+.guide-body dt {
+  font-weight: 700;
+}
+
+.guide-body dd {
+  margin: 0.2rem 0 1rem;
+  max-width: 70ch;
+}
+
+.guide-toc ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-toc a,
+.guide-links a {
+  display: inline-block;
+  padding-block: 0.5rem;
+}
+
+.guide-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.interview-stages {
+  padding-left: 1.5rem;
+}
+
+.interview-stages > li {
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.interview-stages h3 {
+  margin-block: 0 0.5rem;
+}
+
+.interview-stages p {
+  margin-bottom: 0.5rem;
+}
