@@ -10,8 +10,8 @@ const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data 
 ---
 
 <BaseLayout
-  title="Курс — AlgoDS"
-  description="Последовательный курс из 21 этапа: от оценки ограничений до смешанной практики и технического собеседования."
+  title="Курс по алгоритмам и структурам данных: C++ и Python — AlgoDS"
+  description="54 урока в 21 этапе: от ограничений и перебора к структурам данных, графам и DP. Примеры на C++17 и Python 3, инварианты и постепенная практика."
 >
   <header class="page-intro shell">
     <p class="eyebrow">Основной маршрут</p>
@@ -26,6 +26,8 @@ const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data 
     <nav class="page-context-links" aria-label="Связанные разделы курса">
       <a href="/roadmap/">Посмотреть зависимости на карте</a>
       <a href="/reference/">Открыть краткий справочник</a>
+      <a href="/algorithm-patterns/">Как выбрать алгоритмический паттерн</a>
+      <a href="/coding-interview/">Как готовиться к алгоритмическому интервью</a>
     </nav>
   </header>
 

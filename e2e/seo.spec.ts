@@ -15,6 +15,11 @@ for (const width of [360, 390, 430, 768, 1024, 1440]) {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         expect((await page.evaluate(inspectLayout)).issues, route).toEqual([]);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        const footerBounds = await page.locator('footer a').evaluateAll((links) => links.map((link) => {
+          const rect = link.getBoundingClientRect();
+          return { left: rect.left, right: rect.right, viewport: window.innerWidth };
+        }));
+        expect(footerBounds.every(({ left, right, viewport }) => left >= -1 && right <= viewport + 1)).toBe(true);
         if (width === 390 || width === 1440) {
           await page.screenshot({ path: testInfo.outputPath(`${route.replaceAll('/', '')}-viewport.png`) });
         }
@@ -23,9 +28,13 @@ for (const width of [360, 390, 430, 768, 1024, 1440]) {
         await page.goto('/big-o/');
         const table = page.getByRole('region', { name: 'Прокручиваемая таблица' }).first();
         expect(await table.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+        await table.scrollIntoViewIfNeeded();
+        await expect(table).toBeInViewport();
         await table.focus();
+        await expect(table).toBeFocused();
         await page.keyboard.press('ArrowRight');
         await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        if (width === 390) await table.screenshot({ path: testInfo.outputPath('big-o-table-keyboard.png') });
       }
       expect(errors).toEqual([]);
     });
@@ -81,4 +90,28 @@ test('visible course and reference breadcrumbs match their structured trail', as
     await parent.click();
     await expect(page).toHaveURL(route.startsWith('/course/') ? '/course/' : '/reference/');
   }
+});
+
+test('guides have contextual incoming links and footer discovery without expanding the header', async ({ page }) => {
+  await page.goto('/');
+  const footer = page.getByRole('navigation', { name: 'Материалы AlgoDS' });
+  for (const route of ['/big-o/', '/algorithm-patterns/', '/coding-interview/', '/about/']) {
+    await expect(footer.locator(`a[href="${route}"]`)).toHaveCount(1);
+  }
+  await footer.getByRole('link', { name: 'Big O и сложность' }).click();
+  await expect(page).toHaveURL('/big-o/');
+  await page.getByRole('link', { name: 'оценки бюджета по ограничениям' }).click();
+  await expect(page).toHaveURL('/course/constraints-and-budgets/');
+  await page.locator('.lesson-context-links a[href="/big-o/"]').click();
+  await expect(page).toHaveURL('/big-o/');
+  for (const route of ['/course/', '/roadmap/', '/leetcode-75/', '/practice/']) {
+    await page.goto(route);
+    await expect(page.locator('main a[href="/coding-interview/"]')).toHaveCount(1);
+  }
+  await page.goto('/reference/');
+  await expect(page.locator('main a[href="/big-o/"]')).toHaveCount(1);
+  await expect(page.locator('main a[href="/algorithm-patterns/"]')).toHaveCount(1);
+  await page.goto('/reference/sliding-window/');
+  await page.locator('main a[href="/algorithm-patterns/#sliding-window"]').click();
+  await expect(page).toHaveURL('/algorithm-patterns/#sliding-window');
 });

@@ -4,6 +4,13 @@ AlgoDS — статический русскоязычный курс по ал�
 задач на технических собеседованиях. Основной маршрут состоит из 54 уроков в 21 этапе;
 примеры для C++17 и Python 3 равноправны.
 
+[Открыть бесплатный курс на algods.ru](https://algods.ru/)
+
+- [Последовательный курс](https://algods.ru/course/) и [roadmap зависимостей](https://algods.ru/roadmap/).
+- [Практика](https://algods.ru/practice/) и [LeetCode 75](https://algods.ru/leetcode-75/) со связями с уроками.
+- [Big O](https://algods.ru/big-o/), [выбор паттерна](https://algods.ru/algorithm-patterns/) и [подготовка к интервью](https://algods.ru/coding-interview/).
+- Локальный прогресс, закладки и переключение C++ / Python без аккаунта; [о проекте](https://algods.ru/about/).
+
 ## Локальная разработка
 
 Рекомендуются Node.js 24 и npm 11; допустимые версии зафиксированы в `package.json`.
@@ -23,12 +30,19 @@ npm run validate:content
 npm run validate:examples
 npm run build
 npm run validate:links
+npm run validate:seo
 npm run verify
 ```
 
 `verify` также запускает `validate:examples`: команда извлекает все парные примеры из основных уроков, компилирует C++ с
 `-std=c++17` и запускает обе языковые версии. Для команды нужны `g++` и `python` в
 `PATH`.
+
+`validate:seo` проверяет готовый HTML в `dist` после build: title, description,
+canonical, H1, отсутствие accidental noindex, JSON-LD и BreadcrumbList, уникальность
+метаданных и присутствие контентных маршрутов в sitemap. HTML-файл подтверждения Яндекса
+исключён как служебный ресурс. Команда входит в `verify`; отчёт JSON доступен через
+`npm run validate:seo -- --json`.
 
 ## Архитектура
 

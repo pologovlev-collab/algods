@@ -13,7 +13,7 @@ for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     const lessons = release && width <= 430 ? directories('course') : ['/course/graph-representation-and-grids/'];
     const routes = release
-      ? [...lessons, '/', '/course/', '/roadmap/', '/practice/', '/leetcode-75/', '/reference/', ...directories('reference')]
+      ? [...lessons, '/', '/course/', '/roadmap/', '/practice/', '/leetcode-75/', '/reference/', '/big-o/', '/algorithm-patterns/', '/coding-interview/', '/about/', ...directories('reference')]
       : [...lessons, '/course/interview-containers-and-costs/', '/reference/range-query-trees/'];
     const report = [];
     for (const route of routes) {

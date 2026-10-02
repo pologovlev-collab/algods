@@ -14,6 +14,7 @@ import SlidingWindowLab from '../../components/SlidingWindowLab.astro';
 import TreeTraversalLab from '../../components/TreeTraversalLab.astro';
 import TwoPointersLab from '../../components/TwoPointersLab.astro';
 import { patterns } from '../../data/patterns';
+import { patternGuide } from '../../data/pattern-guide';
 import { practiceTasks } from '../../data/practice';
 import { stages } from '../../data/stages';
 import { getLessonNavigation, orderCourseLessons } from '../../lib/course';
@@ -49,6 +50,7 @@ const mappedProblems = selectLessonPracticeTasks(practiceTasks, {
 });
 const { Content } = await render(entry);
 const { title, description } = getLessonSeo(entry.data);
+const hasPatternGuide = patternGuide.some(({ patternId }) => entry.data.patterns.includes(patternId));
 ---
 
 <BaseLayout title={title} description={description}>
@@ -119,6 +121,9 @@ const { title, description } = getLessonSeo(entry.data);
         <h2>Связи</h2>
         <ul>
           <li><a href="/roadmap/">На карте знаний</a></li>
+          {entry.data.stage <= 1 && <li><a href="/big-o/">Big O: обзор времени и памяти</a></li>}
+          {hasPatternGuide && <li><a href="/algorithm-patterns/">Как распознать и выбрать паттерн</a></li>}
+          {entry.data.stage >= 19 && <li><a href="/coding-interview/">Маршрут подготовки к интервью</a></li>}
           {relatedReferenceEntries.length > 0 ? relatedReferenceEntries.map((reference) => (
             <li><a href={reference.href}>{reference.title} — кратко</a></li>
           )) : (
