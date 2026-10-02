@@ -1,5 +1,6 @@
 ---
 import { Code } from 'astro:components';
+import Breadcrumbs from './Breadcrumbs.astro';
 
 import {
   REFERENCE_CATEGORIES,
@@ -20,6 +21,11 @@ const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)
 ---
 
 <header class='reference-topic-header page-intro shell'>
+  <Breadcrumbs items={[
+    { name: 'AlgoDS', href: '/' },
+    { name: 'Справочник', href: '/reference/' },
+    { name: entry.title, href: entry.href },
+  ]} />
   <a class='back-link' href='/reference/'>К справочнику</a>
   <p class='eyebrow'>{category?.title}</p>
   <h1>{entry.title}</h1>
