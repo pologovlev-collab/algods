@@ -2,6 +2,7 @@ import { coreReferenceTopics } from '../data/core-reference-topics';
 import { patterns } from '../data/patterns';
 import { referenceTopics } from '../data/reference-topics';
 import type { ReferenceDeepDive } from '../data/reference-topics';
+import { referenceQuickAnswers, type ReferenceQuickAnswer } from '../data/reference-quick-answers';
 
 export type ReferenceCategoryId = 'core-patterns' | 'data-structures' | 'advanced';
 
@@ -56,6 +57,7 @@ export interface ReferenceEntry {
   courseLessonIds: string[];
   patternId?: string;
   deepDives?: ReferenceDeepDive[];
+  quickAnswer?: ReferenceQuickAnswer;
 }
 
 export interface ReferenceGroup {
@@ -85,7 +87,7 @@ export function buildReferenceEntries(sourceLessons: readonly ReferenceLesson[])
       aliases: [...topic.aliases],
       category: topic.category,
       source: 'core',
-      definition: lesson.summary,
+      definition: referenceQuickAnswers[topic.patternId]?.definition ?? lesson.summary,
       useWhen: pattern.signal,
       decisionNotes: lesson.outcomes.map((outcome) => `Уметь ${outcome}.`),
       complexity: [...topic.complexity],
@@ -93,6 +95,7 @@ export function buildReferenceEntries(sourceLessons: readonly ReferenceLesson[])
       prerequisiteLessonIds: [...lesson.prerequisites],
       courseLessonIds: [lesson.id],
       patternId: pattern.id,
+      ...(referenceQuickAnswers[topic.patternId] ? { quickAnswer: referenceQuickAnswers[topic.patternId] } : {}),
     };
   });
 

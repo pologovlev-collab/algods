@@ -27,10 +27,10 @@ const entryIndex = entries.findIndex(({ id }) => id === entry.id);
 const previous = entryIndex > 0 ? entries[entryIndex - 1] : undefined;
 const next = entryIndex + 1 < entries.length ? entries[entryIndex + 1] : undefined;
 const category = REFERENCE_CATEGORIES.find(({ id }) => id === entry.category);
-const description = `${entry.definition} ${entry.useWhen}`;
+const description = entry.quickAnswer?.seoDescription ?? `${entry.definition} ${entry.useWhen}`;
 ---
 
-<BaseLayout title={entry.title + ' — справочник AlgoDS'} description={description}>
+<BaseLayout title={entry.quickAnswer?.seoTitle ?? entry.title + ' — справочник AlgoDS'} description={description}>
   <ReferenceTopic entry={entry} lessons={lessons} />
 
   <nav class='reference-topic-navigation shell' aria-label='Навигация по справочнику'>

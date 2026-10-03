@@ -63,7 +63,7 @@ test('learning guides render standalone content and reuse the real curriculum', 
 
 test('lesson SEO overrides keep the teaching H1 and summary', async ({ page }) => {
   await page.goto('/course/variable-sliding-window/');
-  await expect(page).toHaveTitle('Скользящее окно (Sliding Window): C++ и Python — AlgoDS');
+  await expect(page).toHaveTitle('Подстрока без повторов: инвариант переменного окна — AlgoDS');
   await expect(page.locator('h1')).toHaveText('Расширение, сжатие и инвариант окна');
   await expect(page.locator('.lesson-title > p').last()).toHaveText('При повторе left прыгает за прошлое вхождение.');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /подстроку без повторов/);
