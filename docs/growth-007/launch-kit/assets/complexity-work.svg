@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Ограничение n и число проверок</title><desc id="desc">При n 200000 один проход делает 200000 шагов; перебор пар i меньше j делает 19999900000 проверок. Это работа, не секунды.</desc>
+<rect width="1200" height="630" fill="#f7f8fb"/><g font-family="Arial,sans-serif" fill="#172235">
+<text x="70" y="100" font-size="40" font-weight="700">Что повторяет перебор?</text><text x="70" y="155" font-size="26">n = 200 000 · операции постоянной стоимости</text>
+<path d="M70 200H1130" stroke="#ccd4df"/><text x="70" y="280" font-size="28">Один проход</text><text x="70" y="345" font-size="44" fill="#2458a6">200 000 шагов</text>
+<text x="660" y="280" font-size="28">Все пары i &lt; j</text><text x="660" y="345" font-size="36" fill="#2458a6">19 999 900 000 проверок</text>
+<text x="660" y="395" font-size="26">n(n − 1) / 2</text><path d="M70 450H1130" stroke="#ccd4df"/>
+<text x="70" y="515" font-size="26">Считаем работу, не обещаем время в секундах.</text><text x="70" y="565" font-size="26">Ограничения отвергают идеи — свойства данных выбирают замену.</text></g></svg>
