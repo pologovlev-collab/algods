@@ -1,5 +1,7 @@
 ---
 import { Code } from 'astro:components';
+import Breadcrumbs from './Breadcrumbs.astro';
+import { patternGuide } from '../data/pattern-guide';
 
 import {
   REFERENCE_CATEGORIES,
@@ -17,9 +19,15 @@ const category = REFERENCE_CATEGORIES.find(({ id }) => id === entry.category);
 const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
 const courseLessons = entry.courseLessonIds.map((id) => lessonById.get(id)).filter(Boolean);
 const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)).filter(Boolean);
+const guide = patternGuide.find(({ patternId }) => patternId === entry.patternId);
 ---
 
 <header class='reference-topic-header page-intro shell'>
+  <Breadcrumbs items={[
+    { name: 'AlgoDS', href: '/' },
+    { name: 'Справочник', href: '/reference/' },
+    { name: entry.title, href: entry.href },
+  ]} />
   <a class='back-link' href='/reference/'>К справочнику</a>
   <p class='eyebrow'>{category?.title}</p>
   <h1>{entry.title}</h1>
@@ -32,6 +40,8 @@ const prerequisites = entry.prerequisiteLessonIds.map((id) => lessonById.get(id)
       <p class='eyebrow'>Сигнал задачи</p>
       <h2 id='reference-use-title'>Когда применять</h2>
       <p>{entry.useWhen}</p>
+      {guide && <p><a href={`/algorithm-patterns/#${guide.id}`}>Как выбрать {guide.title ?? entry.title}: признаки и контрпримеры</a></p>}
+      {entry.patternId === 'problem-solving' && <p><a href="/big-o/">Big O: сравнить стоимость идей</a></p>}
     </section>
 
     {entry.deepDives && entry.deepDives.length > 0 && (

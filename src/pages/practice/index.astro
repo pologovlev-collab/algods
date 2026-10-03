@@ -4,7 +4,7 @@ import PracticeExplorer from '../../components/PracticeExplorer.astro';
 import { practiceTasks } from '../../data/practice';
 ---
 
-<BaseLayout title="Практика — AlgoDS" description="Задачи с постепенным переходом от подсказок к самостоятельному решению.">
+<BaseLayout title="Практика алгоритмов: LeetCode, CodeRun и Codewars — AlgoDS" description="Каталог алгоритмических задач по этапам и режимам: работа с разбором, перенос паттерна и самостоятельное решение. Фильтры платформ и локальные статусы.">
   <header class="page-intro shell">
     <p class="eyebrow">От понимания к переносу</p>
     <h1>Задачи из разных источников</h1>
@@ -16,6 +16,9 @@ import { practiceTasks } from '../../data/practice';
       LeetCode — перенос интервью-паттернов, CodeRun — дисциплина алгоритмического контеста,
       Codewars — короткие упражнения на беглость реализации.
     </p>
+    <nav class="page-context-links" aria-label="Как организовать практику">
+      <a href="/coding-interview/">Как выбирать задачи и повторять перед собеседованием</a>
+    </nav>
   </header>
 
   <section class="practice-ladder shell" aria-labelledby="practice-ladder-title">

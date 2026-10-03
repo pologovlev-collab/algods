@@ -8,6 +8,8 @@ export interface LessonData {
   id: string;
   slug: string;
   title: string;
+  seoTitle?: string;
+  seoDescription?: string;
   stage: number;
   order: number;
   prerequisites: string[];

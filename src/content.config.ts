@@ -65,6 +65,8 @@ const lessons = defineCollection({
     id: z.string().regex(/^s\d{2}-l\d{2}$/),
     slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: z.string().min(5),
+    seoTitle: z.string().trim().min(1).optional(),
+    seoDescription: z.string().trim().min(1).optional(),
     stage: z.number().int().min(0).max(20),
     order: z.number().int().positive(),
     prerequisites: z.array(z.string()),

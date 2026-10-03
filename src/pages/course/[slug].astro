@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import BinarySearchLab from '../../components/BinarySearchLab.astro';
 import DynamicProgrammingLab from '../../components/DynamicProgrammingLab.astro';
 import LanguageSwitch from '../../components/LanguageSwitch.astro';
@@ -13,11 +14,13 @@ import SlidingWindowLab from '../../components/SlidingWindowLab.astro';
 import TreeTraversalLab from '../../components/TreeTraversalLab.astro';
 import TwoPointersLab from '../../components/TwoPointersLab.astro';
 import { patterns } from '../../data/patterns';
+import { patternGuide } from '../../data/pattern-guide';
 import { practiceTasks } from '../../data/practice';
 import { stages } from '../../data/stages';
 import { getLessonNavigation, orderCourseLessons } from '../../lib/course';
 import { selectLessonPracticeTasks } from '../../lib/practice';
 import { buildReferenceEntries } from '../../lib/reference';
+import { getLessonSeo } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const entries = await getCollection('lessons');
@@ -46,13 +49,19 @@ const mappedProblems = selectLessonPracticeTasks(practiceTasks, {
   orderedLessons,
 });
 const { Content } = await render(entry);
-const title = `${entry.data.title} — AlgoDS`;
+const { title, description } = getLessonSeo(entry.data);
+const hasPatternGuide = patternGuide.some(({ patternId }) => entry.data.patterns.includes(patternId));
 ---
 
-<BaseLayout title={title} description={entry.data.summary}>
+<BaseLayout title={title} description={description}>
   <div class="lesson-shell shell">
     <article class="lesson-article">
       <header class="lesson-title">
+        <Breadcrumbs items={[
+          { name: 'AlgoDS', href: '/' },
+          { name: 'Курс', href: '/course/' },
+          { name: entry.data.title, href: `/course/${entry.data.slug}/` },
+        ]} />
         <a class="back-link lesson-title__back" href={`/course/#stage-${entry.data.stage}`}>К этапу {entry.data.stage}</a>
         <p class="eyebrow">Этап {entry.data.stage} · урок {entry.data.order}</p>
         <h1>{entry.data.title}</h1>
@@ -112,6 +121,9 @@ const title = `${entry.data.title} — AlgoDS`;
         <h2>Связи</h2>
         <ul>
           <li><a href="/roadmap/">На карте знаний</a></li>
+          {entry.data.stage <= 1 && <li><a href="/big-o/">Big O: обзор времени и памяти</a></li>}
+          {hasPatternGuide && <li><a href="/algorithm-patterns/">Как распознать и выбрать паттерн</a></li>}
+          {entry.data.stage >= 19 && <li><a href="/coding-interview/">Маршрут подготовки к интервью</a></li>}
           {relatedReferenceEntries.length > 0 ? relatedReferenceEntries.map((reference) => (
             <li><a href={reference.href}>{reference.title} — кратко</a></li>
           )) : (

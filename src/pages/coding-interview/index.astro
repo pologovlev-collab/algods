@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import { Content } from '../../content/guides/coding-interview.md';
+import { stages } from '../../data/stages';
+import { orderCourseLessons } from '../../lib/course';
+const lessons = orderCourseLessons((await getCollection('lessons')).map(({ data }) => data));
+---
+<GuideLayout
+  title="Алгоритмы для собеседования: roadmap подготовки — AlgoDS"
+  description="Подготовка к алгоритмическому собеседованию по 21 этапу AlgoDS: структуры данных, паттерны, графы, DP, практика LeetCode 75 и повторение."
+  heading="Алгоритмы для собеседования: маршрут подготовки"
+  intro="Не учите решения списком. Пройдите путь от ограничений и простого перебора к самостоятельному выбору техники и ясному объяснению кода."
+>
+  <nav class="guide-links" aria-label="Начать подготовку">
+    <a href={`/course/${lessons[0]?.slug}/`}>Начать курс</a>
+    <a href="/roadmap/">Roadmap: зависимости тем</a>
+    <a href="/leetcode-75/">LeetCode 75</a>
+    <a href="/practice/">Практика алгоритмов</a>
+  </nav>
+  <h2>21 этап существующего курса</h2>
+  <p>Порядок и описания ниже берутся из данных курса. Это тот же маршрут; точные prerequisites отдельных уроков доступны на карте. Этапы нумеруются от 0 до 20.</p>
+  <ol class="interview-stages" start="0">
+    {stages.map((stage) => {
+      const stageLessons = lessons.filter((lesson) => lesson.stage === stage.id);
+      return (
+        <li data-interview-stage={stage.id}>
+          <h3><a href={`/course/#stage-${stage.id}`}>{stage.title}</a></h3>
+          <p>{stage.description}</p>
+          <p>Первый шаг: <a href={`/course/${stageLessons[0]?.slug}/`}>{stageLessons[0]?.title}</a>. Уроков в этапе: {stageLessons.length}.</p>
+        </li>
+      );
+    })}
+  </ol>
+  <Content />
+</GuideLayout>

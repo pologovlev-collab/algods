@@ -1,0 +1,26 @@
+---
+import StructuredData from './StructuredData.astro';
+import { buildBreadcrumbList, type BreadcrumbItem } from '../lib/seo';
+interface Props { items: BreadcrumbItem[] }
+const { items } = Astro.props;
+---
+<nav class="breadcrumbs" aria-label="Хлебные крошки">
+  <ol>
+    {items.map((item, index) => (
+      <li>
+        {index > 0 && <span aria-hidden="true">/</span>}
+        {index === items.length - 1
+          ? <span aria-current="page">{item.name}</span>
+          : <a href={item.href}>{item.name}</a>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<StructuredData data={buildBreadcrumbList(items)} />
+<style>
+  .breadcrumbs { margin-bottom: 1.5rem; color: var(--ink-soft); font-size: 0.875rem; }
+  ol { display: flex; flex-wrap: wrap; gap: 0.25rem 0.65rem; margin: 0; padding: 0; list-style: none; }
+  li { display: inline-flex; align-items: baseline; gap: 0.65rem; min-width: 0; }
+  a { display: inline-block; padding-block: 0.5rem; }
+  span[aria-current] { overflow-wrap: anywhere; }
+</style>

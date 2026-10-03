@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import { patternGuide } from '../../data/pattern-guide';
+import { patterns } from '../../data/patterns';
+import { buildReferenceEntries } from '../../lib/reference';
+const lessons = (await getCollection('lessons')).map(({ data }) => data);
+const references = buildReferenceEntries(lessons);
+const items = patternGuide.map((item) => {
+  const pattern = patterns.find(({ id }) => id === item.patternId);
+  const lesson = lessons.find(({ id }) => id === item.lessonId);
+  const reference = references.find(({ patternId }) => patternId === item.patternId);
+  if (!pattern || !lesson || !reference) throw new Error(`Missing guide mapping: ${item.id}`);
+  return { ...item, title: item.title ?? pattern.title, signal: pattern.signal, lesson, reference };
+});
+---
+<GuideLayout
+  title="Паттерны алгоритмических задач: как выбрать подход — AlgoDS"
+  description="Как выбрать технику по свойствам задачи: признаки, ограничения и контрпримеры для двух указателей, окна, бинарного поиска, BFS, DFS, greedy и DP."
+  heading="Паттерны задач: как выбрать подход"
+  intro="Название техники — итог рассуждения. Сначала определите форму ответа, свойства данных и работу, которую прямое решение повторяет."
+>
+  <h2>Пять вопросов перед выбором паттерна</h2>
+  <ol>
+    <li><strong>Что ищем?</strong> Пару, непрерывный фрагмент, путь, количество способов или лучший вариант? Подмассив сохраняет непрерывность, подпоследовательность может пропускать элементы.</li>
+    <li><strong>Какие свойства гарантированы?</strong> Порядок, знак чисел, модель весов, возможность менять вход. Слово «массив» само по себе не выбирает алгоритм.</li>
+    <li><strong>Что делает перебор?</strong> Назовите кандидатов и повторную работу: поиск в префиксе, пересчёт диапазона или одинаковую остаточную подзадачу.</li>
+    <li><strong>Какое состояние достаточно?</strong> Границы, частоты, visited, минимум в куче или ответ DP. Запишите инвариант до реализации.</li>
+    <li><strong>Что опровергает идею?</strong> Постройте маленький контрпример и оцените <a href="/big-o/">время и память через Big O</a> до усложнения кода.</li>
+  </ol>
+  <p>Техники сочетаются: префиксная сумма даёт значение диапазона, а хеш-таблица хранит частоты уже встреченных префиксов. Поэтому ниже ориентиры для проверки гипотез, а не правило «одно ключевое слово — один шаблон».</p>
+  <nav class="guide-toc" aria-label="Техники в руководстве">
+    <ol>{items.map((item) => <li><a href={`#${item.id}`}>{item.title}</a></li>)}</ol>
+  </nav>
+  {items.map((item) => (
+    <section id={item.id} data-pattern-guide aria-labelledby={`${item.id}-title`}>
+      <h2 id={`${item.id}-title`}>{item.title}</h2>
+      <p><strong>Признак задачи:</strong> {item.signal}</p>
+      <dl>
+        <dt>Когда подходит</dt><dd>{item.useWhen}</dd>
+        <dt>Когда не подходит</dt><dd>{item.avoidWhen}</dd>
+        <dt>Проверьте на примере</dt><dd>{item.example}</dd>
+        <dt>Стоимость</dt><dd>{item.complexity ?? item.reference.complexity[0]}</dd>
+      </dl>
+      <nav class="guide-links" aria-label={`Продолжить: ${item.title}`}>
+        <a href={`/course/${item.lesson.slug}/`}>{item.lesson.title} — урок</a>
+        <a href={item.reference.href}>{item.reference.title} — справочник</a>
+        <a href={`/course/#stage-${item.lesson.stage}`}>Этап {item.lesson.stage} и его уроки</a>
+      </nav>
+    </section>
+  ))}
+  <h2>Как тренировать распознавание</h2>
+  <p>Сначала решите задачу с известной техникой. Затем закройте название и сформулируйте свойства задачи своими словами. Сравните две гипотезы, найдите контрпример к слабой и объясните инвариант сильной. Если вы узнали знакомый сюжет, это ещё не проверка нового условия.</p>
+  <p>Используйте <a href="/practice/">практику с разбором, переносом и самостоятельным режимом</a>, а затем <a href="/leetcode-75/">LeetCode 75, сопоставленный урокам</a>. После решения записывайте, какой признак был решающим и на каком изменении условия алгоритм перестаёт работать.</p>
+  <p>Для первого прохода следуйте <a href="/course/">порядку курса</a>. Для подготовки к интервью откройте <a href="/coding-interview/">маршрут подготовки и повторения</a>. Глубокий разбор выбора техники есть в уроке <a href="/course/pattern-recognition-decision-process/">«Диагностика задачи без названия паттерна»</a>.</p>
+</GuideLayout>

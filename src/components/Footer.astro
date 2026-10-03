@@ -1,6 +1,18 @@
 <footer class="site-footer">
   <div class="site-footer__inner shell">
     <p><strong>AlgoDS</strong> — курс по алгоритмическому мышлению.</p>
-    <a href="/reference/">Справочник</a>
+    <nav aria-label="Материалы AlgoDS">
+      <ul>
+        <li><a href="/reference/">Справочник</a></li>
+        <li><a href="/big-o/">Big O и сложность</a></li>
+        <li><a href="/algorithm-patterns/">Выбор паттерна</a></li>
+        <li><a href="/coding-interview/">Подготовка к интервью</a></li>
+        <li><a href="/about/">О проекте</a></li>
+      </ul>
+    </nav>
   </div>
 </footer>
+<style>
+  ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; max-width: 38rem; margin: 0; padding: 0; list-style: none; }
+  a { display: inline-block; padding-block: 0.5rem; }
+</style>
