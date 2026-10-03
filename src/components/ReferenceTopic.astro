@@ -32,6 +32,14 @@ const guide = patternGuide.find(({ patternId }) => patternId === entry.patternId
   <p class='eyebrow'>{category?.title}</p>
   <h1>{entry.title}</h1>
   <p>{entry.definition}</p>
+  {entry.quickAnswer && (
+    <nav class='page-context-links' aria-label='Быстрый ответ и следующий шаг'>
+      <a href='#quick-example'>Как работает</a>
+      <a href='#quick-code'>Код C++ / Python</a>
+      <a href='#quick-limits'>Сложность и ограничения</a>
+      {entry.quickAnswer.links[0] && <a href={entry.quickAnswer.links[0].href}>{entry.quickAnswer.links[0].label}</a>}
+    </nav>
+  )}
 </header>
 
 <div class='reference-topic-layout shell'>
@@ -43,6 +51,38 @@ const guide = patternGuide.find(({ patternId }) => patternId === entry.patternId
       {guide && <p><a href={`/algorithm-patterns/#${guide.id}`}>Как выбрать {guide.title ?? entry.title}: признаки и контрпримеры</a></p>}
       {entry.patternId === 'problem-solving' && <p><a href="/big-o/">Big O: сравнить стоимость идей</a></p>}
     </section>
+
+    {entry.quickAnswer && (
+      <>
+        <section id='quick-example' class='reference-deep-dive' aria-labelledby='quick-example-title'>
+          <h2 id='quick-example-title'>От перебора к короткому примеру</h2>
+          <p>{entry.quickAnswer.observation}</p>
+          <h3>Инвариант</h3>
+          <p>{entry.quickAnswer.invariant}</p>
+          <ol>{entry.quickAnswer.trace.map((step) => <li>{step}</li>)}</ol>
+        </section>
+        <section id='quick-code' class='reference-deep-dive' aria-labelledby='quick-code-title'>
+          <h2 id='quick-code-title'>Код на C++ и Python</h2>
+          <p>Обе версии реализуют один контракт. Выберите язык кнопками над кодом; примеры проверяются на маленьких входах и граничных случаях.</p>
+          <div class='reference-code-pair lesson-body'>
+            {entry.quickAnswer.codeExamples.map((example) => (
+              <div class='reference-code-example' data-code-language={example.language}>
+                <h3>{example.label}</h3>
+                <Code code={example.code} lang={example.language} data-language={example.language} />
+              </div>
+            ))}
+          </div>
+          <h3>Проверьте контракт</h3>
+          <ul>{entry.quickAnswer.checks.map((check) => <li>{check}</li>)}</ul>
+        </section>
+        <section id='quick-limits' class='reference-deep-dive' aria-labelledby='quick-limits-title'>
+          <h2 id='quick-limits-title'>Сложность и ограничения метода</h2>
+          <ul>{entry.quickAnswer.limits.map((limit) => <li>{limit}</li>)}</ul>
+          <h3>Следующий шаг</h3>
+          <ul>{entry.quickAnswer.links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}</ul>
+        </section>
+      </>
+    )}
 
     {entry.deepDives && entry.deepDives.length > 0 && (
       <nav class='reference-topic-mobile-toc' aria-labelledby='reference-mobile-toc-title'>
